@@ -5,7 +5,6 @@ import {
   GitCompare,
   TreePine,
   Share2,
-  Code2,
   Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
