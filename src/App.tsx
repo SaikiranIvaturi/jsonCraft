@@ -406,12 +406,14 @@ export default function App() {
                   )
                 ) : (
                   <>
-                    <JsonEditor
-                      value={json}
-                      onChange={handleJsonChange}
-                      validationError={validationResult.error ?? null}
-                      theme={theme}
-                    />
+                    <div className="absolute inset-0">
+                      <JsonEditor
+                        value={json}
+                        onChange={handleJsonChange}
+                        validationError={validationResult.error ?? null}
+                        theme={theme}
+                      />
+                    </div>
                     {showEmptyState && (
                       <div className="absolute inset-0 pointer-events-none">
                         <EmptyState onLoadExample={handleJsonChange} />
