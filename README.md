@@ -43,10 +43,10 @@ Output goes to `dist/`.
 ## Deployment
 
 Hosted on [Cloudflare Pages](https://pages.cloudflare.com). Every push to `main` triggers a new deployment.
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+{
+files: ['**/*.{ts,tsx}'],
+extends: [
+// Other configs...
 
       // Remove tseslint.configs.recommended and replace with this
       tseslint.configs.recommendedTypeChecked,
@@ -64,9 +64,11 @@ Hosted on [Cloudflare Pages](https://pages.cloudflare.com). Every push to `main`
       },
       // other options...
     },
-  },
+
+},
 ])
-```
+
+````
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
@@ -95,4 +97,4 @@ export default defineConfig([
     },
   },
 ])
-```
+````
