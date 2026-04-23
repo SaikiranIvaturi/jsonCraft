@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSONCraft — Format, Validate, and Compare JSON</title>
+    <meta name="description" content="Free JSON formatter, validator, diff tool and tree explorer. No signup required. Privacy-first — everything runs in your browser." />
+    <meta property="og:title" content="JSONCraft — Format, Validate, and Compare JSON" />
+    <meta property="og:description" content="Free JSON formatter, validator, diff tool and tree explorer. Privacy-first, no signup needed." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+    <script>
+      (function () {
+        var theme = localStorage.getItem('json-craft-theme') || 'dark';
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
