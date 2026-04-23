@@ -227,7 +227,7 @@ export default function App() {
   return (
     <TooltipProvider delayDuration={400}>
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
-      <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
+      <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
         <TopNav
           mode={mode}
           onModeChange={setMode}
@@ -237,10 +237,10 @@ export default function App() {
           onThemeToggle={toggleTheme}
         />
 
-        <main className="flex-1 overflow-hidden flex flex-col md:flex-row">
+        <main className="flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row">
           {mode === "diff" ? (
             /* Diff mode — full width with stats bar */
-            <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               {/* Diff controls & stats */}
               <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card/50 text-xs shrink-0">
                 <div className="flex items-center gap-3">
@@ -395,9 +395,9 @@ export default function App() {
             </div>
           ) : (
             /* Format / Validate / Tree modes */
-            <div className="flex-1 overflow-hidden flex">
+            <div className="flex-1 min-h-0 overflow-hidden flex">
               {/* Editor / Tree area */}
-              <div className="flex-1 min-w-0 overflow-hidden relative">
+              <div className="flex-1 min-h-0 min-w-0 overflow-hidden relative">
                 {mode === "tree" && viewMode === "tree" ? (
                   showEmptyState ? (
                     <EmptyState onLoadExample={handleJsonChange} />
