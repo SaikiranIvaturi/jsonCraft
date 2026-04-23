@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/TopNav";
 import { InfoPanel } from "@/components/InfoPanel";
 import { CommandMenu } from "@/components/CommandMenu";
@@ -22,7 +23,7 @@ import {
   computeDiffDetails,
 } from "@/lib/jsonUtils";
 import { EXAMPLES } from "@/lib/examples";
-import { isMac } from "@/lib/utils";
+import { isMac, cn } from "@/lib/utils";
 import type { Mode, ViewMode, IndentStyle } from "@/types";
 import {
   Plus,
@@ -31,6 +32,10 @@ import {
   ChevronDown,
   ChevronUp,
   Trash2,
+  Copy,
+  Check,
+  Wand2,
+  SlidersHorizontal,
 } from "lucide-react";
 
 const STORAGE_KEY = "json-craft-json";
@@ -83,12 +88,25 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
+  const [mobileCopied, setMobileCopied] = useState(false);
 
   useEffect(() => {
     const handler = () => setRenderSideBySide(window.innerWidth >= 640);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
+
+  const handleMobileCopy = useCallback(() => {
+    if (!json) return;
+    navigator.clipboard
+      .writeText(json)
+      .then(() => {
+        setMobileCopied(true);
+        toast.success("Copied to clipboard");
+        setTimeout(() => setMobileCopied(false), 1500);
+      })
+      .catch(() => toast.error("Failed to copy"));
+  }, [json]);
 
   const validationResult = useJsonValidation(json);
 
@@ -242,7 +260,7 @@ export default function App() {
             /* Diff mode — full width with stats bar */
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               {/* Diff controls & stats */}
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card/50 text-xs shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2 border-b border-border bg-card/50 text-xs shrink-0">
                 <div className="flex items-center gap-3">
                   <span className="text-muted-foreground font-medium">
                     JSON Diff
@@ -423,72 +441,123 @@ export default function App() {
                 )}
               </div>
 
-              {/* Responsive Info panel */}
-              <>
-                {/* Desktop sidebar */}
-                <div className="hidden md:flex">
-                  <InfoPanel
-                    json={json}
-                    mode={mode}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
-                    indent={indent}
-                    onIndentChange={setIndent}
-                    sortKeys={sortKeys}
-                    onSortKeysChange={setSortKeys}
-                    onFormat={handleFormat}
-                    onClear={() => handleJsonChange("")}
-                  />
-                </div>
-                {/* Mobile bottom sheet */}
-                <button
-                  className="fixed bottom-4 right-4 z-40 md:hidden bg-primary text-primary-foreground rounded-full shadow-lg px-5 py-3 text-sm font-semibold"
-                  onClick={() => setShowMobilePanel(true)}
-                  aria-label="Show info panel"
-                >
-                  Info & Actions
-                </button>
-                {showMobilePanel && (
-                  <div className="fixed inset-0 z-50 flex flex-col md:hidden">
-                    <div
-                      className="flex-1 bg-black/40"
-                      onClick={() => setShowMobilePanel(false)}
-                    />
-                    <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl p-2 max-h-[70vh] overflow-y-auto animate-slideInUp">
-                      <div className="flex justify-end mb-2">
-                        <button
-                          className="text-xs text-muted-foreground px-2 py-1 rounded hover:bg-muted"
-                          onClick={() => setShowMobilePanel(false)}
-                        >
-                          Close
-                        </button>
-                      </div>
-                      <InfoPanel
-                        json={json}
-                        mode={mode}
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
-                        indent={indent}
-                        onIndentChange={setIndent}
-                        sortKeys={sortKeys}
-                        onSortKeysChange={setSortKeys}
-                        onFormat={handleFormat}
-                        onClear={() => handleJsonChange("")}
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
+              {/* Desktop sidebar only */}
+              <div className="hidden md:flex">
+                <InfoPanel
+                  json={json}
+                  mode={mode}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  indent={indent}
+                  onIndentChange={setIndent}
+                  sortKeys={sortKeys}
+                  onSortKeysChange={setSortKeys}
+                  onFormat={handleFormat}
+                  onClear={() => handleJsonChange("")}
+                />
+              </div>
             </div>
           )}
         </main>
 
-        {/* Bottom bar */}
-        <footer className="h-7 border-t border-border flex items-center justify-between px-4 bg-card/50 shrink-0">
+        {/* Mobile action bar */}
+        {mode !== "diff" && (
+          <div className="md:hidden shrink-0 h-14 border-t border-border flex items-center px-3 gap-2 bg-card/80 backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div
+                className={cn(
+                  "h-2 w-2 rounded-full shrink-0",
+                  isEmpty
+                    ? "bg-muted-foreground/30"
+                    : validationResult.valid
+                      ? "bg-green-500"
+                      : "bg-destructive",
+                )}
+              />
+              <span className="text-xs text-muted-foreground truncate">
+                {isEmpty
+                  ? "Paste or type JSON"
+                  : validationResult.valid
+                    ? "Valid JSON"
+                    : (validationResult.error?.friendly ?? "Invalid JSON")}
+              </span>
+            </div>
+            {(mode === "format" || mode === "tree") && (
+              <Button
+                size="sm"
+                onClick={handleFormat}
+                disabled={isEmpty || !validationResult.valid}
+                className="shrink-0 gap-1.5"
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Format
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMobileCopy}
+              disabled={isEmpty}
+              className="shrink-0 gap-1.5"
+            >
+              {mobileCopied ? (
+                <Check className="h-3.5 w-3.5 text-green-500" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+              {mobileCopied ? "Copied" : "Copy"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobilePanel(true)}
+              className="shrink-0"
+              aria-label="Open settings panel"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Mobile info panel sheet */}
+        {showMobilePanel && (
+          <div className="fixed inset-0 z-50 flex flex-col md:hidden">
+            <div
+              className="flex-1 bg-black/50"
+              onClick={() => setShowMobilePanel(false)}
+            />
+            <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl px-2 pb-2 pt-1 max-h-[78vh] overflow-y-auto animate-slideInUp">
+              <div className="flex items-center justify-between px-2 py-2 mb-1">
+                <span className="text-sm font-semibold">Tools &amp; Settings</span>
+                <button
+                  className="text-xs text-muted-foreground px-3 py-1.5 rounded-md hover:bg-muted"
+                  onClick={() => setShowMobilePanel(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <InfoPanel
+                json={json}
+                mode={mode}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                indent={indent}
+                onIndentChange={setIndent}
+                sortKeys={sortKeys}
+                onSortKeysChange={setSortKeys}
+                onFormat={handleFormat}
+                onClear={() => handleJsonChange("")}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Desktop bottom bar */}
+        <footer className="h-7 border-t border-border hidden md:flex items-center justify-between px-4 bg-card/50 shrink-0">
           <p className="text-xs text-muted-foreground/60">
             🔒 Privacy: all processing happens in your browser
           </p>
-          <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground/60 font-mono">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-mono">
             <span>{isMac ? "⌘K" : "Ctrl+K"} commands</span>
             <span>{isMac ? "⌘⇧F" : "Ctrl+Shift+F"} format</span>
             <span>{isMac ? "⌘D" : "Ctrl+D"} diff</span>

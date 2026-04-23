@@ -1,189 +1,122 @@
-import { useState, useEffect, useRef } from "react";
-
-const BOOT_LINES = [
-  "Initializing JSON engine...",
-  "Loading syntax validator...",
-  "Building tree renderer...",
-  "Mounting diff engine...",
-  "All systems ready.",
-];
+import { useState, useEffect } from "react";
 
 interface SplashScreenProps {
   onDone: () => void;
 }
 
 export function SplashScreen({ onDone }: SplashScreenProps) {
-  const [visibleLines, setVisibleLines] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [logoVisible, setLogoVisible] = useState(false);
+  const [tagVisible, setTagVisible] = useState(false);
+  const [lineWidth, setLineWidth] = useState(0);
   const [exiting, setExiting] = useState(false);
-  const [scanY, setScanY] = useState(0);
-  const scanRef = useRef<number>(0);
 
   useEffect(() => {
-    // Scan line animation
-    let raf: number;
-    const animate = () => {
-      scanRef.current = (scanRef.current + 0.4) % 110;
-      setScanY(scanRef.current);
-      raf = requestAnimationFrame(animate);
-    };
-    raf = requestAnimationFrame(animate);
-
-    // Boot sequence
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    BOOT_LINES.forEach((_, i) => {
-      timers.push(
-        setTimeout(
-          () => {
-            setVisibleLines(i + 1);
-            setProgress(Math.round(((i + 1) / BOOT_LINES.length) * 100));
-          },
-          250 + i * 280,
-        ),
-      );
-    });
-
-    const totalMs = 250 + BOOT_LINES.length * 280;
-    timers.push(setTimeout(() => setExiting(true), totalMs + 600));
-    timers.push(setTimeout(() => onDone(), totalMs + 1050));
-
-    return () => {
-      cancelAnimationFrame(raf);
-      timers.forEach(clearTimeout);
-    };
+    const t: ReturnType<typeof setTimeout>[] = [];
+    t.push(setTimeout(() => setLogoVisible(true), 60));
+    t.push(setTimeout(() => setTagVisible(true), 340));
+    t.push(setTimeout(() => setLineWidth(100), 420));
+    t.push(setTimeout(() => setExiting(true), 1300));
+    t.push(setTimeout(() => onDone(), 1700));
+    return () => t.forEach(clearTimeout);
   }, [onDone]);
 
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
       style={{
-        transition: "opacity 450ms ease",
         opacity: exiting ? 0 : 1,
+        transition: exiting
+          ? "opacity 400ms cubic-bezier(0.4, 0, 0.2, 1)"
+          : "none",
         pointerEvents: exiting ? "none" : "all",
-        backgroundImage: `radial-gradient(circle, rgba(113, 113, 122, 0.08) 1px, transparent 1px)`,
-        backgroundSize: "28px 28px",
       }}
     >
-      {/* Scanning line */}
+      {/* Ambient glow */}
       <div
-        className="absolute left-0 right-0 h-px pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          top: `${scanY}%`,
           background:
-            "linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.25) 40%, rgba(139, 92, 246, 0.5) 50%, rgba(139, 92, 246, 0.25) 60%, transparent 100%)",
-          filter: "blur(1px)",
+            "radial-gradient(ellipse 55% 40% at 50% 50%, rgba(139,92,246,0.08) 0%, transparent 70%)",
         }}
       />
 
-      {/* HUD corners */}
-      {[
-        "top-6 left-6",
-        "top-6 right-6",
-        "bottom-6 left-6",
-        "bottom-6 right-6",
-      ].map((pos, i) => (
+      <div className="flex flex-col items-center gap-5">
+        {/* Logo mark */}
         <div
-          key={i}
-          className={`absolute w-5 h-5 ${pos}`}
+          className="flex items-center gap-5 select-none"
           style={{
-            borderTop: i < 2 ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-            borderBottom: i >= 2 ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-            borderLeft:
-              i % 2 === 0 ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-            borderRight:
-              i % 2 === 1 ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+            opacity: logoVisible ? 1 : 0,
+            transform: logoVisible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.97)",
+            transition:
+              "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
           }}
-        />
-      ))}
-
-      {/* Center content */}
-      <div className="flex flex-col items-center gap-10">
-        {/* Logo */}
-        <div className="flex items-center gap-4">
+        >
           <span
-            className="text-[52px] font-black text-primary leading-none select-none"
+            className="text-primary leading-none"
             style={{
-              fontFamily: "monospace",
-              textShadow:
-                "0 0 15px rgba(139, 92, 246, 0.9), 0 0 35px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2)",
+              fontFamily: '"JetBrains Mono", monospace',
+              fontSize: 50,
+              fontWeight: 800,
+              opacity: 0.85,
             }}
           >
             {"{"}
           </span>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[22px] font-bold tracking-tight text-foreground leading-none">
+          <div className="flex flex-col items-center gap-1.5">
+            <span
+              className="text-foreground leading-none"
+              style={{
+                fontFamily: '"Inter", system-ui, sans-serif',
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+              }}
+            >
               JSONCraft
-            </span>
-            <span className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground/50 leading-none">
-              JSON Toolkit
             </span>
           </div>
           <span
-            className="text-[52px] font-black text-primary leading-none select-none"
+            className="text-primary leading-none"
             style={{
-              fontFamily: "monospace",
-              textShadow:
-                "0 0 15px rgba(139, 92, 246, 0.9), 0 0 35px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2)",
+              fontFamily: '"JetBrains Mono", monospace',
+              fontSize: 50,
+              fontWeight: 800,
+              opacity: 0.85,
             }}
           >
             {"}"}
           </span>
         </div>
 
-        {/* Boot lines */}
-        <div className="w-[280px] flex flex-col gap-[9px]">
-          {BOOT_LINES.map((line, i) => {
-            const shown = i < visibleLines;
-            const done =
-              shown && (i < visibleLines - 1 || i === BOOT_LINES.length - 1);
-            return (
-              <div
-                key={i}
-                className="flex items-center gap-2.5 font-mono text-[11px]"
-                style={{
-                  opacity: shown ? 1 : 0,
-                  transform: shown ? "translateY(0)" : "translateY(5px)",
-                  transition: "opacity 200ms ease, transform 200ms ease",
-                }}
-              >
-                <span
-                  style={{
-                    color: done ? "hsl(142 71% 45%)" : "#8b5cf6",
-                    textShadow: done
-                      ? "0 0 8px hsl(142 71% 45% / 0.6)"
-                      : "0 0 8px rgba(139, 92, 246, 0.6)",
-                  }}
-                >
-                  {done ? "✓" : "›"}
-                </span>
-                <span className="text-muted-foreground/70">{line}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-[280px] flex flex-col gap-2">
-          <div
-            className="h-[2px] w-full rounded-full overflow-hidden"
-            style={{ background: "var(--border)" }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${progress}%`,
-                background: "#8b5cf6",
-                boxShadow: "0 0 8px rgba(139, 92, 246, 0.8)",
-                transition: "width 260ms ease-out",
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground/35">
-            <span>v1.0.0</span>
-            <span>{progress}%</span>
-          </div>
-        </div>
+        {/* Tagline */}
+        <p
+          className="text-muted-foreground uppercase tracking-widest"
+          style={{
+            fontFamily: '"Inter", system-ui, sans-serif',
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: "0.22em",
+            opacity: tagVisible ? 0.45 : 0,
+            transform: tagVisible ? "translateY(0)" : "translateY(5px)",
+            transition: "opacity 500ms ease, transform 500ms ease",
+          }}
+        >
+          Format&nbsp;&nbsp;·&nbsp;&nbsp;Validate&nbsp;&nbsp;·&nbsp;&nbsp;Compare
+        </p>
       </div>
+
+      {/* Bottom sweep */}
+      <div
+        className="absolute bottom-0 left-0"
+        style={{
+          height: 1,
+          width: `${lineWidth}%`,
+          background:
+            "linear-gradient(90deg, transparent 0%, var(--primary) 35%, var(--primary) 65%, transparent 100%)",
+          opacity: 0.5,
+          transition: "width 1000ms cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      />
     </div>
   );
 }

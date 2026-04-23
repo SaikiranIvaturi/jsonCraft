@@ -93,7 +93,7 @@ export function EmptyState({ onLoadExample }: EmptyStateProps) {
           </DropdownMenu>
         </div>
 
-        <p className="text-xs text-muted-foreground/50">
+        <p className="hidden sm:block text-xs text-muted-foreground/50">
           {shortcut('K')} for commands · {shortcut('F', true)} to format
         </p>
       </div>

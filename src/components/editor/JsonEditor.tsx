@@ -103,6 +103,7 @@ export function JsonEditor({
           verticalScrollbarSize: 6,
           horizontalScrollbarSize: 6,
           useShadows: false,
+          alwaysConsumeMouseWheel: false,
         },
         overviewRulerBorder: false,
         hideCursorInOverviewRuler: true,
