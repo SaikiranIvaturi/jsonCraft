@@ -3,6 +3,7 @@ import { Toaster, toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TopNav } from "@/components/TopNav";
 import { InfoPanel } from "@/components/InfoPanel";
+import { useState as useMobileState } from "react";
 import { CommandMenu } from "@/components/CommandMenu";
 import { ShareDialog } from "@/components/ShareDialog";
 import { AnalyzeDialog } from "@/components/AnalyzeDialog";
@@ -410,19 +411,66 @@ export default function App() {
                 )}
               </div>
 
-              {/* Info panel */}
-              <InfoPanel
-                json={json}
-                mode={mode}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                indent={indent}
-                onIndentChange={setIndent}
-                sortKeys={sortKeys}
-                onSortKeysChange={setSortKeys}
-                onFormat={handleFormat}
-                onClear={() => handleJsonChange("")}
-              />
+              {/* Responsive Info panel */}
+              {(() => {
+                const [showMobilePanel, setShowMobilePanel] = useMobileState(false);
+                return (
+                  <>
+                    {/* Desktop sidebar */}
+                    <div className="hidden md:block">
+                      <InfoPanel
+                        json={json}
+                        mode={mode}
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        indent={indent}
+                        onIndentChange={setIndent}
+                        sortKeys={sortKeys}
+                        onSortKeysChange={setSortKeys}
+                        onFormat={handleFormat}
+                        onClear={() => handleJsonChange("")}
+                      />
+                    </div>
+                    {/* Mobile bottom sheet */}
+                    <>
+                      <button
+                        className="fixed bottom-4 right-4 z-40 md:hidden bg-primary text-primary-foreground rounded-full shadow-lg px-4 py-2 text-xs font-semibold"
+                        onClick={() => setShowMobilePanel(true)}
+                        aria-label="Show info panel"
+                      >
+                        Info & Actions
+                      </button>
+                      {showMobilePanel && (
+                        <div className="fixed inset-0 z-50 flex flex-col md:hidden">
+                          <div className="flex-1 bg-black/40" onClick={() => setShowMobilePanel(false)} />
+                          <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl p-2 max-h-[70vh] overflow-y-auto animate-slideInUp">
+                            <div className="flex justify-end mb-2">
+                              <button
+                                className="text-xs text-muted-foreground px-2 py-1 rounded hover:bg-muted"
+                                onClick={() => setShowMobilePanel(false)}
+                              >
+                                Close
+                              </button>
+                            </div>
+                            <InfoPanel
+                              json={json}
+                              mode={mode}
+                              viewMode={viewMode}
+                              onViewModeChange={setViewMode}
+                              indent={indent}
+                              onIndentChange={setIndent}
+                              sortKeys={sortKeys}
+                              onSortKeysChange={setSortKeys}
+                              onFormat={handleFormat}
+                              onClear={() => handleJsonChange("")}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  </>
+                );
+              })()}
             </div>
           )}
         </main>
