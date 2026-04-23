@@ -230,7 +230,7 @@ export default function App() {
           onThemeToggle={toggleTheme}
         />
 
-        <main className="flex-1 overflow-hidden flex">
+        <main className="flex-1 overflow-hidden flex flex-col md:flex-row">
           {mode === "diff" ? (
             /* Diff mode — full width with stats bar */
             <div className="flex-1 overflow-hidden flex flex-col">
