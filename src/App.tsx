@@ -227,7 +227,7 @@ export default function App() {
   return (
     <TooltipProvider delayDuration={400}>
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
-      <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+      <div className="fixed inset-0 flex flex-col bg-background text-foreground overflow-hidden">
         <TopNav
           mode={mode}
           onModeChange={setMode}
