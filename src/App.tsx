@@ -293,14 +293,16 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <div className="flex-1 overflow-hidden">
-                <DiffEditor
-                  original={diffLeft}
-                  modified={diffRight}
-                  onOriginalChange={setDiffLeft}
-                  onModifiedChange={setDiffRight}
-                  theme={theme}
-                />
+              <div className="flex-1 overflow-hidden relative">
+                <div className="absolute inset-0">
+                  <DiffEditor
+                    original={diffLeft}
+                    modified={diffRight}
+                    onOriginalChange={setDiffLeft}
+                    onModifiedChange={setDiffRight}
+                    theme={theme}
+                  />
+                </div>
               </div>
 
               {/* Diff summary panel */}

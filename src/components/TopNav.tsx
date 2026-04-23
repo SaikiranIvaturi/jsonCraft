@@ -75,7 +75,7 @@ export function TopNav({
               )}
             >
               <Icon className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-              <span className="hidden xs:inline">{label}</span>
+              <span>{label}</span>
             </TabsPrimitive.Trigger>
           ))}
         </TabsPrimitive.List>
