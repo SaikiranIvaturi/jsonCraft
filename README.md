@@ -1,23 +1,48 @@
-# React + TypeScript + Vite
+# JSONCraft
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A fast, privacy-first JSON toolkit that runs entirely in your browser.
 
-Currently, two official plugins are available:
+🌐 **Live at [jsoncraft.in](https://jsoncraft.in)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Format** — Beautify and minify JSON with configurable indent (2, 4, tab) and key sorting
+- **Validate** — Instant syntax validation with error location
+- **Diff** — Side-by-side JSON diff with a semantic changes summary (added / removed / changed)
+- **Tree** — Interactive tree explorer with path copying
+- **Share** — Share JSON via compressed URL
+- **Analyze** — Deep JSON statistics and structure analysis
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Privacy
 
-## Expanding the ESLint configuration
+All processing happens in your browser. No data is sent to any server.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
+- [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org)
+- [Vite](https://vitejs.dev)
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+- [Tailwind CSS v4](https://tailwindcss.com)
+- [Radix UI](https://www.radix-ui.com)
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`.
+
+## Deployment
+
+Hosted on [Cloudflare Pages](https://pages.cloudflare.com). Every push to `main` triggers a new deployment.
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
