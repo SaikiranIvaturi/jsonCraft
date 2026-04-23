@@ -61,7 +61,7 @@ function IndentButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex-1 h-7 rounded text-xs font-medium transition-colors",
+        "flex-1 h-9 rounded text-xs font-medium transition-colors",
         active
           ? "bg-primary text-primary-foreground"
           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -171,7 +171,7 @@ export function InfoPanel({
             <button
               onClick={() => onViewModeChange("code")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 h-8 text-xs font-medium transition-colors",
+                "flex-1 flex items-center justify-center gap-1.5 h-10 text-xs font-medium transition-colors",
                 viewMode === "code"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent",
@@ -183,7 +183,7 @@ export function InfoPanel({
             <button
               onClick={() => onViewModeChange("tree")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 h-8 text-xs font-medium transition-colors",
+                "flex-1 flex items-center justify-center gap-1.5 h-10 text-xs font-medium transition-colors",
                 viewMode === "tree"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent",
@@ -258,7 +258,7 @@ export function InfoPanel({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleCopy}
               disabled={isEmpty}
               className="w-full gap-2"
@@ -278,7 +278,7 @@ export function InfoPanel({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleDownload}
               disabled={isEmpty}
               className="w-full gap-2"
@@ -294,7 +294,7 @@ export function InfoPanel({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={onClear}
               disabled={isEmpty}
               className="w-full gap-2 hover:text-destructive hover:border-destructive"

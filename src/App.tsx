@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TopNav } from "@/components/TopNav";
@@ -82,6 +82,13 @@ export default function App() {
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
+
+  useEffect(() => {
+    const handler = () => setRenderSideBySide(window.innerWidth >= 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   const validationResult = useJsonValidation(json);
 
@@ -301,6 +308,7 @@ export default function App() {
                     onOriginalChange={setDiffLeft}
                     onModifiedChange={setDiffRight}
                     theme={theme}
+                    renderSideBySide={renderSideBySide}
                   />
                 </div>
               </div>
@@ -432,7 +440,7 @@ export default function App() {
                 </div>
                 {/* Mobile bottom sheet */}
                 <button
-                  className="fixed bottom-4 right-4 z-40 md:hidden bg-primary text-primary-foreground rounded-full shadow-lg px-4 py-2 text-xs font-semibold"
+                  className="fixed bottom-4 right-4 z-40 md:hidden bg-primary text-primary-foreground rounded-full shadow-lg px-5 py-3 text-sm font-semibold"
                   onClick={() => setShowMobilePanel(true)}
                   aria-label="Show info panel"
                 >
@@ -478,7 +486,7 @@ export default function App() {
           <p className="text-xs text-muted-foreground/60">
             🔒 Privacy: all processing happens in your browser
           </p>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-mono">
+          <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground/60 font-mono">
             <span>{isMac ? "⌘K" : "Ctrl+K"} commands</span>
             <span>{isMac ? "⌘⇧F" : "Ctrl+Shift+F"} format</span>
             <span>{isMac ? "⌘D" : "Ctrl+D"} diff</span>
