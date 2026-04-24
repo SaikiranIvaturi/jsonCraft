@@ -11,6 +11,7 @@ interface JsonEditorProps {
   validationError?: ValidationError | null;
   theme: Theme;
   readOnly?: boolean;
+  onEditorReady?: (editorInstance: editor.IStandaloneCodeEditor) => void;
 }
 
 function EditorSkeleton() {
@@ -32,6 +33,7 @@ export function JsonEditor({
   validationError,
   theme,
   readOnly = false,
+  onEditorReady,
 }: JsonEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Parameters<BeforeMount>[0] | null>(null);
@@ -42,8 +44,24 @@ export function JsonEditor({
     monaco.editor.defineTheme("json-craft-light", jsonCraftLight);
   };
 
-  const handleMount: OnMount = (editorInstance) => {
+  const handleMount: OnMount = (editorInstance, monaco) => {
     editorRef.current = editorInstance;
+    onEditorReady?.(editorInstance);
+
+    // Monaco captures Ctrl+K (chord), Ctrl+D (find next), Ctrl+Shift+F (format document)
+    // before they can bubble to our window listener. Override them to dispatch custom
+    // events that useKeyboardShortcuts picks up regardless of where focus is.
+    const fire = (name: string) => () =>
+      window.dispatchEvent(new CustomEvent(`jsoncraft:${name}`));
+
+    editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, fire("cmd-k"));
+    editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, fire("cmd-d"));
+    editorInstance.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+      fire("cmd-shift-f"),
+    );
+    editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyT, fire("cmd-t"));
+    editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, fire("cmd-s"));
   };
 
   useEffect(() => {

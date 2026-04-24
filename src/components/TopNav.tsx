@@ -1,11 +1,11 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import {
   Wand2,
-  CheckCircle2,
   GitCompare,
   TreePine,
   Share2,
   Terminal,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
@@ -22,6 +22,7 @@ interface TopNavProps {
   onModeChange: (mode: Mode) => void;
   onShare: () => void;
   onCommandMenu: () => void;
+  onShowFeatures: () => void;
   theme: Theme;
   onThemeToggle: () => void;
 }
@@ -33,7 +34,6 @@ const TABS: {
   shortcut: string;
 }[] = [
   { value: "format", label: "Format", icon: Wand2, shortcut: "" },
-  { value: "validate", label: "Validate", icon: CheckCircle2, shortcut: "" },
   { value: "diff", label: "Diff", icon: GitCompare, shortcut: "⌘D" },
   { value: "tree", label: "Tree", icon: TreePine, shortcut: "⌘T" },
 ];
@@ -43,6 +43,7 @@ export function TopNav({
   onModeChange,
   onShare,
   onCommandMenu,
+  onShowFeatures,
   theme,
   onThemeToggle,
 }: TopNavProps) {
@@ -101,6 +102,15 @@ export function TopNav({
             </Button>
           </TooltipTrigger>
           <TooltipContent>Share via URL ({shortcut("S")})</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onShowFeatures} aria-label="Features">
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>What can JSONCraft do?</TooltipContent>
         </Tooltip>
 
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />

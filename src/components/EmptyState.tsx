@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Wand2, GitCompare, TreePine, Minimize2, Upload, Layers } from 'lucide-react'
 import { shortcut } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,6 +9,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { EXAMPLES } from '@/lib/examples'
+
+const HINTS = [
+  { icon: Wand2, label: 'Format & Minify', color: 'text-primary' },
+  { icon: GitCompare, label: 'Diff', color: 'text-sky-500' },
+  { icon: TreePine, label: 'Tree View', color: 'text-emerald-500' },
+  { icon: Minimize2, label: 'Minify', color: 'text-orange-500' },
+  { icon: Upload, label: 'Drag & Drop', color: 'text-pink-500' },
+  { icon: Layers, label: 'Multi-tab', color: 'text-indigo-500' },
+]
 
 interface EmptyStateProps {
   onLoadExample: (json: string) => void
@@ -95,6 +104,19 @@ export function EmptyState({ onLoadExample }: EmptyStateProps) {
 
         <p className="hidden sm:block text-xs text-muted-foreground/50">
           {shortcut('K')} for commands · {shortcut('F', true)} to format
+        </p>
+
+        {/* Capability hints */}
+        <div className="hidden sm:flex items-center gap-3 mt-4 flex-wrap justify-center">
+          {HINTS.map(({ icon: Icon, label, color }) => (
+            <div key={label} className="flex items-center gap-1.5 text-xs text-muted-foreground/40 select-none">
+              <Icon className={`h-3 w-3 ${color} opacity-60`} />
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="hidden sm:block text-[11px] text-muted-foreground/30 mt-1">
+          Press <kbd className="font-mono">?</kbd> in the toolbar to see all features
         </p>
       </div>
     </div>

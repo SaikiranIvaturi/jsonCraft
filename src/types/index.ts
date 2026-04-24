@@ -1,4 +1,11 @@
 export type Mode = 'format' | 'validate' | 'diff' | 'tree'
+
+export interface Tab {
+  id: string;
+  name: string;
+  json: string;
+  mode?: Mode;
+}
 export type ViewMode = 'code' | 'tree'
 export type IndentStyle = 2 | 4 | 'tab'
 export type Theme = 'dark' | 'light'

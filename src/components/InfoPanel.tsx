@@ -10,6 +10,7 @@ import {
   Code,
   TreePine,
   Wand2,
+  Minimize2,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ interface InfoPanelProps {
   sortKeys: boolean;
   onSortKeysChange: (sorted: boolean) => void;
   onFormat: () => void;
+  onMinify: () => void;
   onClear: () => void;
 }
 
@@ -82,6 +84,7 @@ export function InfoPanel({
   sortKeys,
   onSortKeysChange,
   onFormat,
+  onMinify,
   onClear,
 }: InfoPanelProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
@@ -235,15 +238,32 @@ export function InfoPanel({
             <Switch checked={sortKeys} onCheckedChange={onSortKeysChange} />
           </div>
 
-          <Button
-            onClick={onFormat}
-            size="sm"
-            disabled={isEmpty || !validationResult.valid}
-            className="w-full gap-2"
-          >
-            <Wand2 className="h-3.5 w-3.5" />
-            Format JSON
-          </Button>
+          <div className="flex gap-1.5">
+            <Button
+              onClick={onFormat}
+              size="sm"
+              disabled={isEmpty || !validationResult.valid}
+              className="flex-1 gap-1.5"
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              Format
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onMinify}
+                  variant="outline"
+                  size="sm"
+                  disabled={isEmpty || !validationResult.valid}
+                  className="flex-1 gap-1.5"
+                >
+                  <Minimize2 className="h-3.5 w-3.5" />
+                  Minify
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Strip all whitespace</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       )}
 

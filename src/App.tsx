@@ -1,13 +1,14 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/TopNav";
+import { TabBar } from "@/components/TabBar";
 import { InfoPanel } from "@/components/InfoPanel";
 import { CommandMenu } from "@/components/CommandMenu";
 import { ShareDialog } from "@/components/ShareDialog";
 import { AnalyzeDialog } from "@/components/AnalyzeDialog";
-import { SplashScreen } from "@/components/SplashScreen";
+import { FeaturesDialog } from "@/components/FeaturesDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { JsonEditor } from "@/components/editor/JsonEditor";
 import { DiffEditor } from "@/components/editor/DiffEditor";
@@ -24,7 +25,8 @@ import {
 } from "@/lib/jsonUtils";
 import { EXAMPLES } from "@/lib/examples";
 import { isMac, cn } from "@/lib/utils";
-import type { Mode, ViewMode, IndentStyle } from "@/types";
+import type { Mode, ViewMode, IndentStyle, Tab } from "@/types";
+import type { editor as MonacoEditor } from "monaco-editor";
 import {
   Plus,
   Minus,
@@ -36,24 +38,46 @@ import {
   Check,
   Wand2,
   SlidersHorizontal,
+  Upload,
 } from "lucide-react";
 
-const STORAGE_KEY = "json-craft-json";
+const TABS_KEY = "json-craft-tabs";
+const ACTIVE_TAB_KEY = "json-craft-active-tab";
+const LEGACY_KEY = "json-craft-json";
 
-function loadStoredJson(): string {
+function makeTab(name: string, json = ""): Tab {
+  return { id: `tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, json };
+}
+
+function loadInitialTabs(): { tabs: Tab[]; activeId: string } {
   try {
-    return localStorage.getItem(STORAGE_KEY) ?? "";
+    const stored = localStorage.getItem(TABS_KEY);
+    if (stored) {
+      const tabs = JSON.parse(stored) as Tab[];
+      if (Array.isArray(tabs) && tabs.length > 0) {
+        const savedActive = localStorage.getItem(ACTIVE_TAB_KEY) ?? "";
+        const activeId = tabs.some((t) => t.id === savedActive) ? savedActive : tabs[0].id;
+        return { tabs, activeId };
+      }
+    }
+  } catch { /* fall through */ }
+
+  // Migrate from legacy single-json storage
+  try {
+    const legacy = localStorage.getItem(LEGACY_KEY) ?? "";
+    const tab = makeTab("Tab 1", legacy);
+    return { tabs: [tab], activeId: tab.id };
   } catch {
-    return "";
+    const tab = makeTab("Tab 1");
+    return { tabs: [tab], activeId: tab.id };
   }
 }
 
-function saveStoredJson(json: string) {
+function saveTabs(tabs: Tab[], activeId: string) {
   try {
-    localStorage.setItem(STORAGE_KEY, json);
-  } catch {
-    // storage might be full
-  }
+    localStorage.setItem(TABS_KEY, JSON.stringify(tabs));
+    localStorage.setItem(ACTIVE_TAB_KEY, activeId);
+  } catch { /* storage might be full */ }
 }
 
 function formatDiffValue(val: unknown): string {
@@ -72,10 +96,94 @@ function formatDiffValue(val: unknown): string {
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { format } = useJsonFormat();
+  const monacoEditorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
 
-  const [json, setJson] = useState<string>(() => loadStoredJson());
-  const [mode, setMode] = useState<Mode>("format");
+  // ── Tabs state ──────────────────────────────────────────────────────────
+  const [tabs, setTabs] = useState<Tab[]>(() => loadInitialTabs().tabs);
+  const [activeTabId, setActiveTabId] = useState<string>(() => loadInitialTabs().activeId);
+
+  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+  const json = activeTab?.json ?? "";
+  const mode: Mode = activeTab?.mode ?? "format";
+
+  const handleModeChange = useCallback((newMode: Mode) => {
+    if (newMode === "tree") {
+      setViewMode("tree");
+    }
+    setTabs((prev) =>
+      prev.map((t) => {
+        if (t.id !== activeTabId) return t;
+        // Auto-format JSON when entering tree mode so the tree renders clean JSON
+        if (newMode === "tree" && t.json.trim()) {
+          try {
+            const parsed = JSON.parse(t.json);
+            return { ...t, mode: newMode, json: JSON.stringify(parsed, null, 2) };
+          } catch { /* invalid JSON — leave as-is */ }
+        }
+        return { ...t, mode: newMode };
+      }),
+    );
+  }, [activeTabId]);
+
+  // Persist tabs whenever they change
+  useEffect(() => {
+    saveTabs(tabs, activeTabId);
+  }, [tabs, activeTabId]);
+
+  const handleJsonChange = useCallback(
+    (value: string) => {
+      setTabs((prev) => prev.map((t) => (t.id === activeTabId ? { ...t, json: value } : t)));
+    },
+    [activeTabId],
+  );
+
+  const handleTabSelect = useCallback((id: string) => {
+    setActiveTabId(id);
+  }, []);
+
+  const handleTabNew = useCallback(() => {
+    setTabs((prev) => {
+      if (prev.length >= 5) return prev;
+      const tab = makeTab(`Tab ${prev.length + 1}`);
+      setActiveTabId(tab.id);
+      return [...prev, tab];
+    });
+  }, []);
+
+  const handleTabClose = useCallback(
+    (id: string) => {
+      setTabs((prev) => {
+        if (prev.length <= 1) return prev;
+        const idx = prev.findIndex((t) => t.id === id);
+        const next = prev.filter((t) => t.id !== id);
+        if (id === activeTabId) {
+          const newActive = next[Math.max(0, idx - 1)] ?? next[0];
+          setActiveTabId(newActive.id);
+        }
+        // Renumber tabs that still carry a default "Tab N" name
+        let counter = 1;
+        return next.map((t) => (/^Tab \d+$/.test(t.name) ? { ...t, name: `Tab ${counter++}` } : t));
+      });
+    },
+    [activeTabId],
+  );
+
+  const handleTabRename = useCallback((id: string, name: string) => {
+    setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, name } : t)));
+  }, []);
+
+  // ── Other state ─────────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>("code");
+
+  const handleViewModeChange = useCallback((newViewMode: ViewMode) => {
+    setViewMode(newViewMode);
+    if (newViewMode === "tree" && json.trim()) {
+      try {
+        const formatted = JSON.stringify(JSON.parse(json), null, 2);
+        if (formatted !== json) handleJsonChange(formatted);
+      } catch { /* invalid JSON — tree will show its own error state */ }
+    }
+  }, [json, handleJsonChange]);
   const [indent, setIndent] = useState<IndentStyle>(2);
   const [sortKeys, setSortKeys] = useState(false);
   const [diffLeft, setDiffLeft] = useState("");
@@ -85,10 +193,11 @@ export default function App() {
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
   const [mobileCopied, setMobileCopied] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handler = () => setRenderSideBySide(window.innerWidth >= 640);
@@ -96,6 +205,96 @@ export default function App() {
     return () => window.removeEventListener("resize", handler);
   }, []);
 
+  // ── Monaco editor ready ─────────────────────────────────────────────────
+  const handleEditorReady = useCallback((editorInstance: MonacoEditor.IStandaloneCodeEditor) => {
+    monacoEditorRef.current = editorInstance;
+  }, []);
+
+  // ── Validation ──────────────────────────────────────────────────────────
+  const validationResult = useJsonValidation(json);
+
+  // ── Format ──────────────────────────────────────────────────────────────
+  const handleFormat = useCallback(() => {
+    if (!json.trim() || !validationResult.valid) return;
+    handleJsonChange(format(json, indent, sortKeys));
+    toast.success("JSON formatted");
+  }, [json, validationResult.valid, format, indent, sortKeys, handleJsonChange]);
+
+  // ── Minify ──────────────────────────────────────────────────────────────
+  const handleMinify = useCallback(() => {
+    if (!json.trim() || !validationResult.valid) return;
+    try {
+      const minified = JSON.stringify(JSON.parse(json));
+      const savedBytes = json.length - minified.length;
+      const savedKb = Math.abs(savedBytes / 1024).toFixed(1);
+      handleJsonChange(minified);
+      if (savedBytes > 0) {
+        toast.success(`Minified — saved ${savedKb} KB`);
+      } else {
+        toast.success("Already minified");
+      }
+    } catch {
+      toast.error("Failed to minify");
+    }
+  }, [json, validationResult.valid, handleJsonChange]);
+
+  // ── Drag-and-drop ────────────────────────────────────────────────────────
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      if (!["json", "txt", "log", ""].includes(ext)) {
+        toast.error(`Unsupported file: .${ext}. Drop .json, .txt, or .log`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = (ev.target?.result as string) ?? "";
+        if (ext === "json") {
+          handleJsonChange(content);
+          toast.success(`Loaded: ${file.name}`);
+          return;
+        }
+        // For .txt / .log: try parsing directly first, then extract JSON block
+        try {
+          JSON.parse(content);
+          handleJsonChange(content);
+          toast.success(`Loaded JSON from: ${file.name}`);
+          return;
+        } catch { /* not pure JSON */ }
+        const m = content.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        if (m) {
+          try {
+            JSON.parse(m[0]);
+            handleJsonChange(m[0]);
+            toast.success(`Extracted JSON from: ${file.name}`);
+            return;
+          } catch { /* fall through */ }
+        }
+        handleJsonChange(content);
+        toast.success(`Loaded: ${file.name}`);
+      };
+      reader.onerror = () => toast.error("Failed to read file");
+      reader.readAsText(file);
+    },
+    [handleJsonChange],
+  );
+
+  // ── Mobile copy ──────────────────────────────────────────────────────────
   const handleMobileCopy = useCallback(() => {
     if (!json) return;
     navigator.clipboard
@@ -108,53 +307,28 @@ export default function App() {
       .catch(() => toast.error("Failed to copy"));
   }, [json]);
 
-  const validationResult = useJsonValidation(json);
-
-  // Persist JSON to localStorage
-  const handleJsonChange = useCallback((value: string) => {
-    setJson(value);
-    saveStoredJson(value);
-  }, []);
-
-  // Format action
-  const handleFormat = useCallback(() => {
-    if (!json.trim() || !validationResult.valid) return;
-    const formatted = format(json, indent, sortKeys);
-    handleJsonChange(formatted);
-    toast.success("JSON formatted");
-  }, [
-    json,
-    validationResult.valid,
-    format,
-    indent,
-    sortKeys,
-    handleJsonChange,
-  ]);
-
-  // Handle command menu actions
+  // ── Command menu actions ─────────────────────────────────────────────────
   const handleCommandAction = useCallback(
     (action: string) => {
       if (action === "format") {
         handleFormat();
+      } else if (action === "minify") {
+        handleMinify();
       } else if (action === "validate") {
-        setMode("validate");
+        handleModeChange("validate");
       } else if (action === "diff") {
-        setMode("diff");
+        handleModeChange("diff");
         if (!diffLeft && json) setDiffLeft(json);
       } else if (action === "tree") {
-        setMode("tree");
+        handleModeChange("tree");
       } else if (action === "clear") {
         handleJsonChange("");
         toast.success("Editor cleared");
       } else if (action === "copy") {
         navigator.clipboard
           .writeText(json)
-          .then(() => {
-            toast.success("Copied to clipboard");
-          })
-          .catch(() => {
-            toast.error("Failed to copy");
-          });
+          .then(() => toast.success("Copied to clipboard"))
+          .catch(() => toast.error("Failed to copy"));
       } else if (action === "download") {
         const blob = new Blob([json], { type: "application/json" });
         const a = document.createElement("a");
@@ -169,6 +343,16 @@ export default function App() {
         setAnalyzeDialogOpen(true);
       } else if (action === "toggle-theme") {
         toggleTheme();
+      } else if (action === "search") {
+        monacoEditorRef.current?.getAction("actions.find")?.run();
+      } else if (action === "search-replace") {
+        monacoEditorRef.current?.getAction("editor.action.startFindReplaceAction")?.run();
+      } else if (action === "fold-all") {
+        monacoEditorRef.current?.trigger("keyboard", "editor.foldAll", {});
+      } else if (action === "unfold-all") {
+        monacoEditorRef.current?.trigger("keyboard", "editor.unfoldAll", {});
+      } else if (action === "jump-bracket") {
+        monacoEditorRef.current?.getAction("editor.action.jumpToBracket")?.run();
       } else if (action.startsWith("example-")) {
         const key = action.slice("example-".length);
         const example = EXAMPLES[key];
@@ -178,10 +362,10 @@ export default function App() {
         }
       }
     },
-    [handleFormat, json, diffLeft, handleJsonChange, toggleTheme],
+    [handleFormat, handleMinify, handleModeChange, json, diffLeft, handleJsonChange, toggleTheme],
   );
 
-  // URL sharing
+  // ── URL sharing ──────────────────────────────────────────────────────────
   const handleShareLoad = useCallback(
     (loaded: string) => {
       handleJsonChange(loaded);
@@ -189,16 +373,15 @@ export default function App() {
     },
     [handleJsonChange],
   );
-
   useUrlSharing(handleShareLoad);
 
-  // Keyboard shortcuts
+  // ── Keyboard shortcuts ───────────────────────────────────────────────────
   const handleDiff = useCallback(() => {
-    setMode("diff");
+    handleModeChange("diff");
     if (!diffLeft && json) setDiffLeft(json);
-  }, [diffLeft, json]);
+  }, [handleModeChange, diffLeft, json]);
 
-  const handleTree = useCallback(() => setMode("tree"), []);
+  const handleTree = useCallback(() => handleModeChange("tree"), [handleModeChange]);
   const handleShare = useCallback(() => setShareDialogOpen(true), []);
   const handleAnalyze = useCallback(() => setAnalyzeDialogOpen(true), []);
   const handleCommandMenu = useCallback(() => setCommandMenuOpen(true), []);
@@ -215,15 +398,11 @@ export default function App() {
   const handlePathCopy = useCallback((path: string) => {
     navigator.clipboard
       .writeText(path)
-      .then(() => {
-        toast.success(`Copied: ${path}`);
-      })
-      .catch(() => {
-        toast.error("Failed to copy path");
-      });
+      .then(() => toast.success(`Copied: ${path}`))
+      .catch(() => toast.error("Failed to copy path"));
   }, []);
 
-  // Diff stats
+  // ── Diff stats ───────────────────────────────────────────────────────────
   const preparedLeft =
     mode === "diff" && diffLeft ? prepareForDiff(diffLeft, strictDiff) : "";
   const preparedRight =
@@ -242,29 +421,66 @@ export default function App() {
   const isEmpty = !json.trim();
   const showEmptyState = isEmpty && mode !== "diff";
 
+  const infoPanelProps = {
+    json,
+    mode,
+    viewMode,
+    onViewModeChange: handleViewModeChange,
+    indent,
+    onIndentChange: setIndent,
+    sortKeys,
+    onSortKeysChange: setSortKeys,
+    onFormat: handleFormat,
+    onMinify: handleMinify,
+    onClear: () => handleJsonChange(""),
+  };
+
   return (
     <TooltipProvider delayDuration={400}>
-      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
       <div className="fixed inset-0 flex flex-col bg-background text-foreground overflow-hidden">
         <TopNav
           mode={mode}
-          onModeChange={setMode}
+          onModeChange={handleModeChange}
           onShare={() => setShareDialogOpen(true)}
           onCommandMenu={() => setCommandMenuOpen(true)}
+          onShowFeatures={() => setFeaturesDialogOpen(true)}
           theme={theme}
           onThemeToggle={toggleTheme}
         />
 
-        <main className="flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row">
+        {/* Tab bar */}
+        <TabBar
+          tabs={tabs}
+          activeId={activeTab?.id ?? ""}
+          onSelect={handleTabSelect}
+          onNew={handleTabNew}
+          onClose={handleTabClose}
+          onRename={handleTabRename}
+        />
+
+        <main
+          className="flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row relative"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {/* Drag-and-drop overlay */}
+          {isDragging && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/90 border-2 border-dashed border-primary rounded-lg m-2 pointer-events-none">
+              <div className="text-center">
+                <Upload className="h-10 w-10 text-primary mx-auto mb-3" />
+                <p className="text-sm font-semibold">Drop to load JSON</p>
+                <p className="text-xs text-muted-foreground mt-1">.json · .txt · .log</p>
+              </div>
+            </div>
+          )}
+
           {mode === "diff" ? (
             /* Diff mode — full width with stats bar */
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-              {/* Diff controls & stats */}
               <div className="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2 border-b border-border bg-card/50 text-xs shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-muted-foreground font-medium">
-                    JSON Diff
-                  </span>
+                  <span className="text-muted-foreground font-medium">JSON Diff</span>
                   <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
                     <input
                       type="checkbox"
@@ -275,10 +491,7 @@ export default function App() {
                     Strict order
                   </label>
                   <button
-                    onClick={() => {
-                      setDiffLeft("");
-                      setDiffRight("");
-                    }}
+                    onClick={() => { setDiffLeft(""); setDiffRight(""); }}
                     disabled={!diffLeft && !diffRight}
                     className="flex items-center gap-1 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
@@ -311,9 +524,7 @@ export default function App() {
                       diffStats.modifications === 0 &&
                       diffLeft &&
                       diffRight && (
-                        <span className="text-green-600 dark:text-green-400">
-                          ✓ No differences
-                        </span>
+                        <span className="text-green-600 dark:text-green-400">✓ No differences</span>
                       )}
                   </div>
                 )}
@@ -341,8 +552,7 @@ export default function App() {
                     <span className="font-medium">Changes Summary</span>
                     <div className="flex items-center gap-2">
                       <span>
-                        {diffDetails.length} change
-                        {diffDetails.length !== 1 ? "s" : ""}
+                        {diffDetails.length} change{diffDetails.length !== 1 ? "s" : ""}
                       </span>
                       {showDiffSummary ? (
                         <ChevronDown className="h-3 w-3" />
@@ -361,42 +571,24 @@ export default function App() {
                           {change.type === "added" && (
                             <>
                               <span className="text-green-500 shrink-0">+</span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">
-                                {change.path}
-                              </span>
-                              <span className="text-green-500 truncate">
-                                {formatDiffValue(change.newValue)}
-                              </span>
+                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">{change.path}</span>
+                              <span className="text-green-500 truncate">{formatDiffValue(change.newValue)}</span>
                             </>
                           )}
                           {change.type === "removed" && (
                             <>
                               <span className="text-red-500 shrink-0">−</span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">
-                                {change.path}
-                              </span>
-                              <span className="text-red-500 truncate">
-                                {formatDiffValue(change.oldValue)}
-                              </span>
+                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">{change.path}</span>
+                              <span className="text-red-500 truncate">{formatDiffValue(change.oldValue)}</span>
                             </>
                           )}
                           {change.type === "changed" && (
                             <>
-                              <span className="text-yellow-500 shrink-0">
-                                ~
-                              </span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[30%]">
-                                {change.path}
-                              </span>
-                              <span className="text-red-400 line-through truncate">
-                                {formatDiffValue(change.oldValue)}
-                              </span>
-                              <span className="text-muted-foreground shrink-0">
-                                →
-                              </span>
-                              <span className="text-green-400 truncate">
-                                {formatDiffValue(change.newValue)}
-                              </span>
+                              <span className="text-yellow-500 shrink-0">~</span>
+                              <span className="text-muted-foreground shrink-0 truncate max-w-[30%]">{change.path}</span>
+                              <span className="text-red-400 line-through truncate">{formatDiffValue(change.oldValue)}</span>
+                              <span className="text-muted-foreground shrink-0">→</span>
+                              <span className="text-green-400 truncate">{formatDiffValue(change.newValue)}</span>
                             </>
                           )}
                         </div>
@@ -414,7 +606,6 @@ export default function App() {
           ) : (
             /* Format / Validate / Tree modes */
             <div className="flex-1 min-h-0 overflow-hidden flex">
-              {/* Editor / Tree area */}
               <div className="flex-1 min-h-0 min-w-0 overflow-hidden relative">
                 {mode === "tree" && viewMode === "tree" ? (
                   showEmptyState ? (
@@ -430,6 +621,7 @@ export default function App() {
                         onChange={handleJsonChange}
                         validationError={validationResult.error ?? null}
                         theme={theme}
+                        onEditorReady={handleEditorReady}
                       />
                     </div>
                     {showEmptyState && (
@@ -443,18 +635,7 @@ export default function App() {
 
               {/* Desktop sidebar only */}
               <div className="hidden md:flex">
-                <InfoPanel
-                  json={json}
-                  mode={mode}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  indent={indent}
-                  onIndentChange={setIndent}
-                  sortKeys={sortKeys}
-                  onSortKeysChange={setSortKeys}
-                  onFormat={handleFormat}
-                  onClear={() => handleJsonChange("")}
-                />
+                <InfoPanel {...infoPanelProps} />
               </div>
             </div>
           )}
@@ -522,10 +703,7 @@ export default function App() {
         {/* Mobile info panel sheet */}
         {showMobilePanel && (
           <div className="fixed inset-0 z-50 flex flex-col md:hidden">
-            <div
-              className="flex-1 bg-black/50"
-              onClick={() => setShowMobilePanel(false)}
-            />
+            <div className="flex-1 bg-black/50" onClick={() => setShowMobilePanel(false)} />
             <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl px-2 pb-2 pt-1 max-h-[78vh] overflow-y-auto animate-slideInUp">
               <div className="flex items-center justify-between px-2 py-2 mb-1">
                 <span className="text-sm font-semibold">Tools &amp; Settings</span>
@@ -536,18 +714,7 @@ export default function App() {
                   Close
                 </button>
               </div>
-              <InfoPanel
-                json={json}
-                mode={mode}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                indent={indent}
-                onIndentChange={setIndent}
-                sortKeys={sortKeys}
-                onSortKeysChange={setSortKeys}
-                onFormat={handleFormat}
-                onClear={() => handleJsonChange("")}
-              />
+              <InfoPanel {...infoPanelProps} />
             </div>
           </div>
         )}
@@ -573,17 +740,11 @@ export default function App() {
           theme={theme}
         />
 
-        <ShareDialog
-          open={shareDialogOpen}
-          onOpenChange={setShareDialogOpen}
-          json={json}
-        />
+        <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} json={json} />
 
-        <AnalyzeDialog
-          open={analyzeDialogOpen}
-          onOpenChange={setAnalyzeDialogOpen}
-          json={json}
-        />
+        <AnalyzeDialog open={analyzeDialogOpen} onOpenChange={setAnalyzeDialogOpen} json={json} />
+
+        <FeaturesDialog open={featuresDialogOpen} onOpenChange={setFeaturesDialogOpen} />
 
         <Toaster
           position="bottom-right"

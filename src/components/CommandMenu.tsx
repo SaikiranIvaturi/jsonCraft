@@ -11,7 +11,6 @@ import {
 import { shortcut } from "@/lib/utils";
 import {
   Wand2,
-  CheckCircle2,
   GitCompare,
   TreePine,
   Trash2,
@@ -22,12 +21,19 @@ import {
   Moon,
   FileJson,
   BarChart2,
+  Minimize2,
+  Search,
+  Replace,
+  FoldVertical,
+  UnfoldVertical,
+  Braces,
 } from "lucide-react";
 import { EXAMPLES } from "@/lib/examples";
 import type { Theme } from "@/types";
 
 type ActionId =
   | "format"
+  | "minify"
   | "validate"
   | "diff"
   | "tree"
@@ -37,6 +43,11 @@ type ActionId =
   | "download"
   | "share"
   | "toggle-theme"
+  | "search"
+  | "search-replace"
+  | "fold-all"
+  | "unfold-all"
+  | "jump-bracket"
   | `example-${string}`;
 
 interface CommandMenuProps {
@@ -46,15 +57,12 @@ interface CommandMenuProps {
   theme: Theme;
 }
 
-export function CommandMenu({
-  open,
-  onOpenChange,
-  onAction,
-  theme,
-}: CommandMenuProps) {
+export function CommandMenu({ open, onOpenChange, onAction, theme }: CommandMenuProps) {
   const run = (action: ActionId) => {
     onOpenChange(false);
-    onAction(action);
+    // Defer action by one frame so the dialog finishes closing and focus restores
+    // before any Monaco editor action (find, fold, etc.) tries to run.
+    requestAnimationFrame(() => onAction(action));
   };
 
   return (
@@ -64,30 +72,34 @@ export function CommandMenu({
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => run("format")}>
+          <CommandItem value="format json" onSelect={() => run("format")}>
             <Wand2 className="h-4 w-4 text-primary" />
             Format JSON
-            <CommandShortcut>{shortcut('F', true)}</CommandShortcut>
+            <CommandShortcut>{shortcut("F", true)}</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run("copy")}>
+          <CommandItem value="minify json strip whitespace" onSelect={() => run("minify")}>
+            <Minimize2 className="h-4 w-4 text-orange-500" />
+            Minify JSON
+          </CommandItem>
+          <CommandItem value="copy clipboard" onSelect={() => run("copy")}>
             <Copy className="h-4 w-4" />
             Copy to Clipboard
           </CommandItem>
-          <CommandItem onSelect={() => run("download")}>
+          <CommandItem value="download save file" onSelect={() => run("download")}>
             <Download className="h-4 w-4" />
             Download as .json
           </CommandItem>
-          <CommandItem onSelect={() => run("share")}>
+          <CommandItem value="share url link" onSelect={() => run("share")}>
             <FileJson className="h-4 w-4" />
             Share via URL
-            <CommandShortcut>{shortcut('S')}</CommandShortcut>
+            <CommandShortcut>{shortcut("S")}</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run("analyze")}>
+          <CommandItem value="analyze stats depth keys" onSelect={() => run("analyze")}>
             <BarChart2 className="h-4 w-4 text-violet-500" />
             Analyze JSON
-            <CommandShortcut>{shortcut('A', true)}</CommandShortcut>
+            <CommandShortcut>{shortcut("A", true)}</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run("clear")}>
+          <CommandItem value="clear delete editor" onSelect={() => run("clear")}>
             <Trash2 className="h-4 w-4 text-destructive" />
             Clear Editor
           </CommandItem>
@@ -95,20 +107,43 @@ export function CommandMenu({
 
         <CommandSeparator />
 
-        <CommandGroup heading="Modes">
-          <CommandItem onSelect={() => run("validate")}>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            Validate JSON
+        <CommandGroup heading="Editor">
+          <CommandItem value="find search" onSelect={() => run("search")}>
+            <Search className="h-4 w-4 text-sky-500" />
+            Find in Editor
+            <CommandShortcut>Ctrl+F</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run("diff")}>
+          <CommandItem value="find replace search" onSelect={() => run("search-replace")}>
+            <Replace className="h-4 w-4 text-sky-500" />
+            Find &amp; Replace
+            <CommandShortcut>Ctrl+H</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="fold collapse all" onSelect={() => run("fold-all")}>
+            <FoldVertical className="h-4 w-4 text-amber-500" />
+            Fold All
+          </CommandItem>
+          <CommandItem value="unfold expand all" onSelect={() => run("unfold-all")}>
+            <UnfoldVertical className="h-4 w-4 text-amber-500" />
+            Unfold All
+          </CommandItem>
+          <CommandItem value="jump bracket brace" onSelect={() => run("jump-bracket")}>
+            <Braces className="h-4 w-4 text-emerald-500" />
+            Jump to Matching Bracket
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Modes">
+          <CommandItem value="diff compare" onSelect={() => run("diff")}>
             <GitCompare className="h-4 w-4 text-sky-500" />
             Compare / Diff
-            <CommandShortcut>{shortcut('D')}</CommandShortcut>
+            <CommandShortcut>{shortcut("D")}</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run("tree")}>
+          <CommandItem value="tree explorer view" onSelect={() => run("tree")}>
             <TreePine className="h-4 w-4 text-emerald-500" />
             Tree Explorer
-            <CommandShortcut>{shortcut('T')}</CommandShortcut>
+            <CommandShortcut>{shortcut("T")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 
@@ -116,7 +151,7 @@ export function CommandMenu({
 
         <CommandGroup heading="Load Example">
           {Object.entries(EXAMPLES).map(([key, { label }]) => (
-            <CommandItem key={key} onSelect={() => run(`example-${key}`)}>
+            <CommandItem key={key} value={`example ${label.toLowerCase()}`} onSelect={() => run(`example-${key}`)}>
               <Sparkles className="h-4 w-4 text-yellow-500" />
               {label}
             </CommandItem>
@@ -126,7 +161,7 @@ export function CommandMenu({
         <CommandSeparator />
 
         <CommandGroup heading="Settings">
-          <CommandItem onSelect={() => run("toggle-theme")}>
+          <CommandItem value="toggle theme dark light mode" onSelect={() => run("toggle-theme")}>
             {theme === "dark" ? (
               <Sun className="h-4 w-4 text-yellow-500" />
             ) : (
