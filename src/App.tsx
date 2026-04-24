@@ -9,6 +9,7 @@ import { CommandMenu } from "@/components/CommandMenu";
 import { ShareDialog } from "@/components/ShareDialog";
 import { AnalyzeDialog } from "@/components/AnalyzeDialog";
 import { FeaturesDialog } from "@/components/FeaturesDialog";
+import { AboutDialog } from "@/components/AboutDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { JsonEditor } from "@/components/editor/JsonEditor";
 import { DiffEditor } from "@/components/editor/DiffEditor";
@@ -194,6 +195,7 @@ export default function App() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
   const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
   const [mobileCopied, setMobileCopied] = useState(false);
@@ -724,6 +726,12 @@ export default function App() {
           <p className="text-xs text-muted-foreground/60">
             🔒 Privacy: all processing happens in your browser
           </p>
+          <button
+            onClick={() => setAboutDialogOpen(true)}
+            className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors"
+          >
+            Built by Ivaturi Sai Kiran
+          </button>
           <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-mono">
             <span>{isMac ? "⌘K" : "Ctrl+K"} commands</span>
             <span>{isMac ? "⌘⇧F" : "Ctrl+Shift+F"} format</span>
@@ -745,6 +753,8 @@ export default function App() {
         <AnalyzeDialog open={analyzeDialogOpen} onOpenChange={setAnalyzeDialogOpen} json={json} />
 
         <FeaturesDialog open={featuresDialogOpen} onOpenChange={setFeaturesDialogOpen} />
+
+        <AboutDialog open={aboutDialogOpen} onOpenChange={setAboutDialogOpen} />
 
         <Toaster
           position="bottom-right"
