@@ -14,7 +14,6 @@ import {
   Search,
   Replace,
   FoldVertical,
-  UnfoldVertical,
   Braces,
   Layers,
   Upload,
