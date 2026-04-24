@@ -2,59 +2,79 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JSONCraft — Format, Validate, and Compare JSON</title>
-    <meta
-      name="description"
-      content="Free JSON formatter, validator, diff tool and tree explorer. No signup required. Privacy-first — everything runs in your browser."
-    />
-    <meta
-      name="keywords"
-      content="json, json formatter, json validator, json diff, json tree, online json, json tool, json explorer, jsoncraft"
-    />
+
+    <!-- Primary SEO -->
+    <title>JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool</title>
+    <meta name="description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. No signup. Privacy-first — everything runs in your browser, nothing is sent to a server." />
+    <meta name="keywords" content="json formatter, json validator, json diff, json tree, json minifier, json beautifier, online json tool, json explorer, format json online, validate json, compare json, jsoncraft" />
+    <meta name="author" content="Ivaturi Sai Kiran" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
     <link rel="canonical" href="https://jsoncraft.in/" />
-    <meta property="og:url" content="https://jsoncraft.in/" />
-    <meta property="og:image" content="https://jsoncraft.in/og-image.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="JSONCraft — Format, Validate, and Compare JSON"
-    />
-    <meta
-      name="twitter:description"
-      content="Free JSON formatter, validator, diff tool and tree explorer. Privacy-first, no signup needed."
-    />
-    <meta name="twitter:image" content="https://jsoncraft.in/og-image.png" />
-    <meta
-      property="og:title"
-      content="JSONCraft — Format, Validate, and Compare JSON"
-    />
-    <meta
-      property="og:description"
-      content="Free JSON formatter, validator, diff tool and tree explorer. Privacy-first, no signup needed."
-    />
+
+    <!-- Favicon & icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <meta name="application-name" content="JSONCraft" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#09090b" />
     <meta property="og:site_name" content="JSONCraft" />
+    <meta property="og:url" content="https://jsoncraft.in/" />
+    <meta property="og:title" content="JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool" />
+    <meta property="og:description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — runs entirely in your browser." />
+    <meta property="og:image" content="https://jsoncraft.in/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="JSONCraft — JSON toolkit for developers" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool" />
+    <meta name="twitter:description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — runs entirely in your browser." />
+    <meta name="twitter:image" content="https://jsoncraft.in/og-image.png" />
+    <meta name="twitter:image:alt" content="JSONCraft — JSON toolkit for developers" />
+
+    <!-- Structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "JSONCraft",
       "url": "https://jsoncraft.in/",
-      "description": "Free JSON formatter, validator, diff tool and tree explorer. No signup required. Privacy-first — everything runs in your browser.",
+      "description": "Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — everything runs in your browser.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      "browserRequirements": "Requires a modern browser with JavaScript enabled",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "JSON Formatter and Beautifier",
+        "JSON Validator with line-level error reporting",
+        "JSON Diff and Compare",
+        "JSON Tree Explorer",
+        "JSON Minifier",
+        "JSON Analyzer",
+        "Multi-tab workspaces",
+        "Drag and drop file upload",
+        "Share via URL"
+      ],
+      "creator": {
+        "@type": "Person",
+        "name": "Ivaturi Sai Kiran",
+        "url": "https://cv-portfolio-orpin.vercel.app/"
+      }
     }
     </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+    <!-- Inline theme script — runs before first paint to prevent flash -->
     <script>
       (function () {
         var theme = localStorage.getItem("json-craft-theme") || "dark";
