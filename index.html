@@ -7,7 +7,7 @@
     <!-- Primary SEO -->
     <title>JSONCraft — Free Online JSON Formatter, TypeScript &amp; YAML Converter</title>
     <meta name="description" content="Free online JSON formatter, validator and converter. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. No signup — everything runs in your browser." />
-    <meta name="keywords" content="json formatter, json validator, json to typescript, json to yaml, json to csv, json schema generator, jsonpath tester, json diff, json tree explorer, json minifier, json beautifier, format json online, validate json online, json converter, jsoncraft" />
+    <meta name="keywords" content="json formatter, json formatter online, json validator, json beautifier, json minifier, json to typescript, json to yaml, json to csv, json schema generator, jsonpath tester, json diff, json compare, json tree explorer, format json online, validate json online, json converter online, online json tools, json editor, jsoncraft" />
     <meta name="author" content="Ivaturi Sai Kiran" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://jsoncraft.in/" />
@@ -24,7 +24,7 @@
     <meta property="og:site_name" content="JSONCraft" />
     <meta property="og:url" content="https://jsoncraft.in/" />
     <meta property="og:title" content="JSONCraft — Free Online JSON Formatter, TypeScript &amp; YAML Converter" />
-    <meta property="og:description" content="Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. Free, no signup — everything runs in your browser." />
+    <meta property="og:description" content="Free online JSON formatter, validator and converter. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. No signup — everything runs in your browser." />
     <meta property="og:image" content="https://jsoncraft.in/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -34,17 +34,17 @@
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="JSONCraft — Free Online JSON Formatter, TypeScript &amp; YAML Converter" />
-    <meta name="twitter:description" content="Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. Free, no signup — everything runs in your browser." />
+    <meta name="twitter:description" content="Free online JSON formatter, validator and converter. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. No signup — everything runs in your browser." />
     <meta name="twitter:image" content="https://jsoncraft.in/og-image.png" />
     <meta name="twitter:image:alt" content="JSONCraft — Free JSON tools for developers" />
 
-    <!-- Structured data -->
+    <!-- Structured data: WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "JSONCraft",
-      "alternateName": ["Free Online JSON Formatter", "JSON to TypeScript Converter", "JSON to YAML Converter"],
+      "alternateName": ["Free Online JSON Formatter", "JSON to TypeScript Converter", "JSON to YAML Converter", "JSONPath Tester"],
       "url": "https://jsoncraft.in/",
       "description": "Free online JSON toolkit. Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV or JSON Schema. Run JSONPath queries. Privacy-first — everything runs in your browser.",
       "applicationCategory": "DeveloperApplication",
@@ -79,6 +79,96 @@
     }
     </script>
 
+    <!-- Structured data: FAQ — renders expandable cards directly in Google results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is JSONCraft?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JSONCraft is a free online JSON toolkit for developers. It lets you format, validate, minify and diff JSON, convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema, and run JSONPath queries — all without any signup and without sending data to a server."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I format JSON online for free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Paste or type your JSON into JSONCraft at jsoncraft.in and click Format (or press Ctrl+Shift+F). The formatter instantly prettifies your JSON with proper indentation. You can choose 2-space, 4-space or tab indentation, and optionally sort keys alphabetically."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I validate JSON online?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JSONCraft validates your JSON in real time as you type. Any syntax error is underlined and described at the exact line and column — no need to click a button. The status indicator at the bottom shows Valid JSON or the error message."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I convert JSON to TypeScript interfaces?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click Convert → JSON → TypeScript in the toolbar. Paste your JSON and TypeScript interfaces are generated instantly. JSONCraft handles nested objects, arrays, union types from mixed arrays, and marks fields as optional when they are missing from some array items."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I convert JSON to YAML?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click Convert → JSON ↔ YAML. Paste your JSON on the left and get YAML output on the right. You can also go the other direction — paste YAML to get JSON. Useful for Kubernetes configs, Docker Compose files and GitHub Actions workflows."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I convert JSON to CSV?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click Convert → JSON ↔ CSV. Paste a JSON array of objects and get a CSV file ready for Excel or Google Sheets. Nested objects are automatically flattened with dot notation (e.g. address.city). You can also convert CSV back to JSON."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is JSONPath and how do I use it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JSONPath is a query language for JSON, similar to XPath for XML. For example, $.users[?(@.age > 30)].email selects emails of users older than 30. Click Convert → JSONPath Playground in JSONCraft, paste your JSON, and type a JSONPath expression to see matching values in real time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I generate a JSON Schema from JSON?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click Convert → JSON Schema in JSONCraft. Paste your JSON document and a JSON Schema Draft 7 definition is inferred automatically, including required fields, property types, and nested object structures."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I compare two JSON files online?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click the Diff tab in JSONCraft. Paste the first JSON on the left and the second on the right. Added, removed and changed values are highlighted side by side, and a changes summary lists every difference with its path, old value and new value."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is JSONCraft free? Does it store my data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "JSONCraft is completely free — no account, no API key, no rate limits. It is also fully privacy-first: all processing happens in your browser using JavaScript. Your JSON is never sent to any server and never stored anywhere except your own browser's local storage."
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -95,60 +185,117 @@
   <body>
     <div id="root">
       <!--
-        Static content for search crawlers that don't execute JavaScript.
-        This is replaced by the React app on load.
+        Static content for search engine crawlers that don't execute JavaScript.
+        Replaced by the React app at runtime.
       -->
       <noscript>
         <style>
-          body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
-          h1 { font-size: 1.75rem; }
-          h2 { font-size: 1.25rem; margin-top: 2rem; }
-          ul { line-height: 2; }
+          body { font-family: system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 2rem; line-height: 1.6; color: #111; }
+          h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+          h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #eee; padding-bottom: 0.25rem; }
+          h3 { font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.25rem; }
+          ul { line-height: 2; padding-left: 1.5rem; }
+          code { background: #f4f4f5; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.9em; }
+          .tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
+          .tool { border: 1px solid #e4e4e7; border-radius: 8px; padding: 1rem; }
+          .tool strong { display: block; margin-bottom: 0.25rem; }
         </style>
+
         <h1>JSONCraft — Free Online JSON Formatter, TypeScript &amp; YAML Converter</h1>
         <p>
-          JSONCraft is a free online JSON toolkit for developers. Format, validate, diff and explore JSON.
-          Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema.
-          Run JSONPath queries. No signup required — everything runs entirely in your browser.
+          JSONCraft is a free online JSON toolkit for developers. Format, validate, minify and diff JSON.
+          Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries.
+          No signup required — everything runs entirely in your browser. Your data never leaves your device.
         </p>
 
-        <h2>JSON Formatter &amp; Validator</h2>
-        <p>Paste or type JSON and instantly format it with 2- or 4-space indentation. Real-time validation highlights syntax errors at the exact line. Sort keys alphabetically, minify to reduce size, or beautify minified JSON.</p>
+        <h2>JSON Tools</h2>
+        <div class="tools">
+          <div class="tool">
+            <strong>JSON Formatter &amp; Beautifier</strong>
+            Paste minified or messy JSON and format it instantly with 2-space, 4-space or tab indentation. Sort keys alphabetically.
+          </div>
+          <div class="tool">
+            <strong>JSON Validator</strong>
+            Real-time JSON validation with line-level error highlighting. See the exact position of every syntax error as you type.
+          </div>
+          <div class="tool">
+            <strong>JSON Minifier</strong>
+            Strip all whitespace from JSON to reduce file size for APIs and storage. Shows how many bytes were saved.
+          </div>
+          <div class="tool">
+            <strong>JSON Diff &amp; Compare</strong>
+            Paste two JSON documents side by side. Additions, deletions and modifications are colour-coded with a full changes summary.
+          </div>
+          <div class="tool">
+            <strong>JSON Tree Explorer</strong>
+            Navigate deeply nested JSON as a collapsible, searchable tree. Click any node to copy its JSONPath.
+          </div>
+          <div class="tool">
+            <strong>JSON Analyzer</strong>
+            Inspect total node count, max depth, type distribution, most common keys and array statistics.
+          </div>
+          <div class="tool">
+            <strong>JSON to TypeScript</strong>
+            Generate TypeScript interfaces from any JSON. Handles nested objects, array union types and optional fields from mixed arrays.
+          </div>
+          <div class="tool">
+            <strong>JSONPath Playground</strong>
+            Write JSONPath expressions like <code>$.users[?(@.age &gt; 30)].email</code> and see matching values update in real time.
+          </div>
+          <div class="tool">
+            <strong>JSON to YAML / YAML to JSON</strong>
+            Instantly convert between JSON and YAML. Useful for Kubernetes, Docker Compose and GitHub Actions configs.
+          </div>
+          <div class="tool">
+            <strong>JSON to CSV / CSV to JSON</strong>
+            Export JSON arrays as CSV for Excel or Sheets. Nested objects are flattened with dot notation. Converts back too.
+          </div>
+          <div class="tool">
+            <strong>JSON Schema Inference</strong>
+            Paste a JSON document and get a JSON Schema Draft 7 definition with required fields and types auto-detected.
+          </div>
+        </div>
 
-        <h2>JSON to TypeScript Interface Generator</h2>
-        <p>Paste a JSON object or array and get clean TypeScript interfaces instantly. Handles nested objects, arrays with union types, and optional fields inferred from mixed arrays — similar to quicktype but right in your browser.</p>
+        <h2>Frequently Asked Questions</h2>
 
-        <h2>JSONPath Playground</h2>
-        <p>Write JSONPath expressions like <code>$.users[?(@.age &gt; 30)].email</code> and see the matching values highlighted in real time. Supports the full JSONPath spec via jsonpath-plus.</p>
+        <h3>How do I format JSON online for free?</h3>
+        <p>Go to <a href="https://jsoncraft.in/">jsoncraft.in</a>, paste or type your JSON and click <strong>Format</strong> (or press <kbd>Ctrl+Shift+F</kbd>). JSONCraft prettifies your JSON instantly with proper indentation. No signup, no limit.</p>
 
-        <h2>JSON to YAML Converter</h2>
-        <p>Convert JSON to YAML or YAML to JSON instantly. Useful for Kubernetes configs, Docker Compose, GitHub Actions workflows and other DevOps tooling.</p>
+        <h3>How do I validate JSON?</h3>
+        <p>JSONCraft validates your JSON in real time as you type. Syntax errors are underlined at the exact line and column. The status bar at the bottom shows <em>Valid JSON</em> or the specific error message.</p>
 
-        <h2>JSON to CSV Converter</h2>
-        <p>Convert a JSON array of objects to CSV for spreadsheet import. Nested objects are flattened with dot notation. Reverse direction converts CSV back to a JSON array with automatic type inference.</p>
+        <h3>How do I convert JSON to TypeScript interfaces?</h3>
+        <p>Click <strong>Convert → JSON → TypeScript</strong>. Paste your JSON object or array and TypeScript interfaces are generated instantly. Optional fields are inferred when array items have different shapes.</p>
 
-        <h2>JSON Schema Inference</h2>
-        <p>Paste a JSON document and instantly get a JSON Schema Draft 7 definition. Required fields, types, and nested structures are detected automatically.</p>
+        <h3>How do I convert JSON to YAML?</h3>
+        <p>Click <strong>Convert → JSON ↔ YAML</strong>. Paste JSON on the left, get YAML on the right. Switch direction to convert YAML back to JSON. Works with complex nested structures.</p>
 
-        <h2>JSON Diff &amp; Compare</h2>
-        <p>Paste two JSON documents and see additions, deletions and modifications highlighted side by side. A changes summary lists every difference with path, old value and new value.</p>
+        <h3>How do I convert JSON to CSV?</h3>
+        <p>Click <strong>Convert → JSON ↔ CSV</strong>. Paste a JSON array of objects and get a CSV you can open in Excel or Google Sheets. Nested objects are flattened as <code>parent.child</code> column names.</p>
 
-        <h2>JSON Tree Explorer</h2>
-        <p>Browse large JSON documents as a collapsible tree. Click any node to copy its JSONPath. Handles deeply nested objects and arrays with thousands of nodes.</p>
+        <h3>What is JSONPath?</h3>
+        <p>JSONPath is a query language for extracting data from JSON, similar to XPath for XML. Example: <code>$.store.books[?(@.price &lt; 10)].title</code> selects titles of books under $10. Use the JSONPath Playground on JSONCraft to test expressions interactively.</p>
 
-        <h2>JSON Analyzer</h2>
-        <p>Analyze your JSON document's structure: total node count, max depth, type distribution, most common keys, array statistics and empty/null value counts.</p>
+        <h3>How do I generate a JSON Schema?</h3>
+        <p>Click <strong>Convert → JSON Schema</strong>. Paste your JSON and a JSON Schema Draft 7 definition is inferred automatically — including required fields, property types and nested object structures.</p>
 
-        <h2>Features</h2>
+        <h3>How do I compare two JSON files?</h3>
+        <p>Click the <strong>Diff</strong> tab. Paste the first JSON on the left and the second on the right. Differences are highlighted and listed with path, old value and new value.</p>
+
+        <h3>Is JSONCraft free? Does it send my data anywhere?</h3>
+        <p>JSONCraft is 100% free — no account, no API key, no rate limits. It is fully privacy-first: all processing runs in your browser. Your JSON is never sent to any server.</p>
+
+        <h2>Why use JSONCraft?</h2>
         <ul>
-          <li>100% free — no account, no API key, no rate limits</li>
-          <li>Privacy-first — your JSON never leaves your device</li>
-          <li>Works offline after first load</li>
-          <li>Multi-tab workspaces — work on multiple JSONs at once</li>
-          <li>Drag and drop file upload (.json, .txt, .log)</li>
-          <li>Share JSON via URL — encode your document in a shareable link</li>
-          <li>Command palette (Ctrl+K / ⌘K) for keyboard-driven workflow</li>
-          <li>Dark and light mode</li>
+          <li>All JSON tools in one place — format, validate, diff, convert, explore</li>
+          <li>Free with no signup, no ads, no paywalls</li>
+          <li>Privacy-first — your data never leaves your browser</li>
+          <li>Works offline after first load (Progressive Web App)</li>
+          <li>Multi-tab workspaces to work on multiple JSON documents at once</li>
+          <li>Drag &amp; drop .json, .txt or .log files directly into the editor</li>
+          <li>Share any JSON via a URL — paste, click Share, send the link</li>
+          <li>Command palette (Ctrl+K / ⌘K) for fast keyboard-driven workflow</li>
+          <li>Dark mode and light mode</li>
         </ul>
       </noscript>
     </div>
