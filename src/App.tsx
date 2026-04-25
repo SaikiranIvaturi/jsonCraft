@@ -10,6 +10,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { AnalyzeDialog } from "@/components/AnalyzeDialog";
 import { FeaturesDialog } from "@/components/FeaturesDialog";
 import { AboutDialog } from "@/components/AboutDialog";
+import { DiffSummary } from "@/components/DiffSummary";
 import { JsonToTsDialog } from "@/components/JsonToTsDialog";
 import { JsonPathDialog } from "@/components/JsonPathDialog";
 import { JsonCsvDialog } from "@/components/JsonCsvDialog";
@@ -38,8 +39,6 @@ import {
   Plus,
   Minus,
   RefreshCw,
-  ChevronDown,
-  ChevronUp,
   Trash2,
   Copy,
   Check,
@@ -94,18 +93,6 @@ function saveTabs(tabs: Tab[], activeId: string) {
   } catch { /* storage might be full */ }
 }
 
-function formatDiffValue(val: unknown): string {
-  if (val === null) return "null";
-  if (typeof val === "string") {
-    const s = JSON.stringify(val);
-    return s.length > 60 ? s.slice(0, 60) + '…"' : s;
-  }
-  if (typeof val === "object") {
-    const s = JSON.stringify(val);
-    return s.length > 60 ? s.slice(0, 60) + "…}" : s;
-  }
-  return String(val);
-}
 
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
@@ -591,63 +578,11 @@ export default function App() {
 
               {/* Diff summary panel */}
               {diffDetails.length > 0 && (
-                <div className="border-t border-border bg-card/30 shrink-0">
-                  <button
-                    className="flex items-center justify-between w-full px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setShowDiffSummary((v) => !v)}
-                  >
-                    <span className="font-medium">Changes Summary</span>
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {diffDetails.length} change{diffDetails.length !== 1 ? "s" : ""}
-                      </span>
-                      {showDiffSummary ? (
-                        <ChevronDown className="h-3 w-3" />
-                      ) : (
-                        <ChevronUp className="h-3 w-3" />
-                      )}
-                    </div>
-                  </button>
-                  {showDiffSummary && (
-                    <div className="max-h-40 overflow-y-auto px-4 pb-3 flex flex-col gap-0.5">
-                      {diffDetails.slice(0, 100).map((change, i) => (
-                        <div
-                          key={i}
-                          className="flex items-baseline gap-2 text-xs font-mono py-0.5 min-w-0"
-                        >
-                          {change.type === "added" && (
-                            <>
-                              <span className="text-green-500 shrink-0">+</span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">{change.path}</span>
-                              <span className="text-green-500 truncate">{formatDiffValue(change.newValue)}</span>
-                            </>
-                          )}
-                          {change.type === "removed" && (
-                            <>
-                              <span className="text-red-500 shrink-0">−</span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[40%]">{change.path}</span>
-                              <span className="text-red-500 truncate">{formatDiffValue(change.oldValue)}</span>
-                            </>
-                          )}
-                          {change.type === "changed" && (
-                            <>
-                              <span className="text-yellow-500 shrink-0">~</span>
-                              <span className="text-muted-foreground shrink-0 truncate max-w-[30%]">{change.path}</span>
-                              <span className="text-red-400 line-through truncate">{formatDiffValue(change.oldValue)}</span>
-                              <span className="text-muted-foreground shrink-0">→</span>
-                              <span className="text-green-400 truncate">{formatDiffValue(change.newValue)}</span>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                      {diffDetails.length > 100 && (
-                        <div className="text-xs text-muted-foreground py-0.5">
-                          …and {diffDetails.length - 100} more changes
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <DiffSummary
+                  changes={diffDetails}
+                  visible={showDiffSummary}
+                  onToggle={() => setShowDiffSummary((v) => !v)}
+                />
               )}
             </div>
           ) : (
