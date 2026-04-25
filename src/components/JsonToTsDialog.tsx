@@ -55,8 +55,8 @@ export function JsonToTsDialog({ open, onOpenChange, json }: Props) {
             JSON → TypeScript
           </DialogTitle>
           <DialogDescription>
-            Generate TypeScript interfaces from your JSON. Handles nested types, arrays, and
-            optional fields.
+            Generate TypeScript interfaces from your JSON. Handles nested types,
+            arrays, and optional fields.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,7 +75,9 @@ export function JsonToTsDialog({ open, onOpenChange, json }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-h-0">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-muted-foreground">JSON Input</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              JSON Input
+            </span>
             <textarea
               className="flex-1 min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary"
               value={input}
@@ -87,7 +89,9 @@ export function JsonToTsDialog({ open, onOpenChange, json }: Props) {
 
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">TypeScript Output</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                TypeScript Output
+              </span>
               <Button
                 size="sm"
                 variant="ghost"
@@ -108,9 +112,11 @@ export function JsonToTsDialog({ open, onOpenChange, json }: Props) {
                 {error}
               </div>
             ) : (
-              <pre className="flex-1 min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 overflow-auto whitespace-pre-wrap break-words">
+              <pre className="flex-1 min-h-[240px] max-h-[50vh] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 overflow-auto whitespace-pre break-words">
                 {output || (
-                  <span className="text-muted-foreground">Output will appear here…</span>
+                  <span className="text-muted-foreground">
+                    Output will appear here…
+                  </span>
                 )}
               </pre>
             )}

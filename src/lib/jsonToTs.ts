@@ -82,14 +82,14 @@ export function jsonToTypeScript(jsonStr: string): string {
     objInterface(parsed, "Root");
     const names = [...defs.keys()];
     const ri = names.indexOf("Root");
-    if (ri > 0) { names.splice(ri, 1); names.push("Root"); }
+    if (ri !== -1) { names.splice(ri, 1); names.unshift("Root"); }
     return names.map((n) => defs.get(n)!).join("\n\n");
   }
   if (Array.isArray(parsed)) {
     const t = arrayType(parsed, "Root");
     const names = [...defs.keys()];
     const extra = names.map((n) => defs.get(n)!).join("\n\n");
-    return extra ? `${extra}\n\ntype Root = ${t};` : `type Root = ${t};`;
+    return extra ? `type Root = ${t};\n\n${extra}` : `type Root = ${t};`;
   }
   return `type Root = ${parsed === null ? "null" : typeof parsed};`;
 }
