@@ -15,6 +15,7 @@ import { JsonPathDialog } from "@/components/JsonPathDialog";
 import { JsonCsvDialog } from "@/components/JsonCsvDialog";
 import { JsonYamlDialog } from "@/components/JsonYamlDialog";
 import { JsonSchemaDialog } from "@/components/JsonSchemaDialog";
+import { OnboardingTour, ONBOARDED_KEY } from "@/components/OnboardingTour";
 import { EmptyState } from "@/components/EmptyState";
 import { JsonEditor } from "@/components/editor/JsonEditor";
 import { DiffEditor } from "@/components/editor/DiffEditor";
@@ -45,6 +46,13 @@ import {
   Wand2,
   SlidersHorizontal,
   Upload,
+  Code2,
+  Search,
+  Table,
+  FileText,
+  Braces,
+  Share2,
+  BarChart2,
 } from "lucide-react";
 
 const TABS_KEY = "json-craft-tabs";
@@ -208,6 +216,9 @@ export default function App() {
   const [jsonSchemaOpen, setJsonSchemaOpen] = useState(false);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem(ONBOARDED_KEY),
+  );
   const [mobileCopied, setMobileCopied] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -407,6 +418,11 @@ export default function App() {
   const handleShare = useCallback(() => setShareDialogOpen(true), []);
   const handleAnalyze = useCallback(() => setAnalyzeDialogOpen(true), []);
   const handleCommandMenu = useCallback(() => setCommandMenuOpen(true), []);
+
+  const handleOnboardingDone = useCallback(() => {
+    localStorage.setItem(ONBOARDED_KEY, "1");
+    setShowOnboarding(false);
+  }, []);
 
   const handleConvert = useCallback((tool: string) => {
     if (tool === "ts") setJsonToTsOpen(true);
@@ -735,7 +751,7 @@ export default function App() {
         {showMobilePanel && (
           <div className="fixed inset-0 z-50 flex flex-col md:hidden">
             <div className="flex-1 bg-black/50" onClick={() => setShowMobilePanel(false)} />
-            <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl px-2 pb-2 pt-1 max-h-[78vh] overflow-y-auto animate-slideInUp">
+            <div className="bg-card border-t border-border rounded-t-2xl shadow-2xl px-2 pb-2 pt-1 max-h-[82vh] overflow-y-auto animate-slideInUp">
               <div className="flex items-center justify-between px-2 py-2 mb-1">
                 <span className="text-sm font-semibold">Tools &amp; Settings</span>
                 <button
@@ -745,6 +761,44 @@ export default function App() {
                   Close
                 </button>
               </div>
+
+              {/* Convert tools */}
+              <div className="px-2 pb-3 border-b border-border mb-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 mb-2">Convert</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { tool: "ts", icon: Code2, label: "JSON → TypeScript", color: "text-blue-500" },
+                    { tool: "jsonpath", icon: Search, label: "JSONPath Playground", color: "text-green-500" },
+                    { tool: "csv", icon: Table, label: "JSON ↔ CSV", color: "text-orange-500" },
+                    { tool: "yaml", icon: FileText, label: "JSON ↔ YAML", color: "text-yellow-500" },
+                    { tool: "schema", icon: Braces, label: "JSON Schema", color: "text-violet-500" },
+                  ].map(({ tool, icon: Icon, label, color }) => (
+                    <button
+                      key={tool}
+                      onClick={() => { handleConvert(tool); setShowMobilePanel(false); }}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted text-xs font-medium transition-colors text-left"
+                    >
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${color}`} />
+                      <span className="leading-tight">{label}</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => { setShareDialogOpen(true); setShowMobilePanel(false); }}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted text-xs font-medium transition-colors text-left"
+                  >
+                    <Share2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                    <span className="leading-tight">Share via URL</span>
+                  </button>
+                  <button
+                    onClick={() => { setAnalyzeDialogOpen(true); setShowMobilePanel(false); }}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted text-xs font-medium transition-colors text-left"
+                  >
+                    <BarChart2 className="h-3.5 w-3.5 shrink-0 text-pink-500" />
+                    <span className="leading-tight">Analyze JSON</span>
+                  </button>
+                </div>
+              </div>
+
               <InfoPanel {...infoPanelProps} />
             </div>
           </div>
@@ -803,6 +857,8 @@ export default function App() {
             },
           }}
         />
+
+        {showOnboarding && <OnboardingTour onDone={handleOnboardingDone} />}
       </div>
     </TooltipProvider>
   );
