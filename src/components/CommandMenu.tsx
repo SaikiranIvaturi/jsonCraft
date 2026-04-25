@@ -27,6 +27,9 @@ import {
   FoldVertical,
   UnfoldVertical,
   Braces,
+  Code2,
+  Table,
+  FileText,
 } from "lucide-react";
 import { EXAMPLES } from "@/lib/examples";
 import type { Theme } from "@/types";
@@ -48,6 +51,11 @@ type ActionId =
   | "fold-all"
   | "unfold-all"
   | "jump-bracket"
+  | "convert-ts"
+  | "convert-jsonpath"
+  | "convert-csv"
+  | "convert-yaml"
+  | "convert-schema"
   | `example-${string}`;
 
 interface CommandMenuProps {
@@ -156,6 +164,31 @@ export function CommandMenu({ open, onOpenChange, onAction, theme }: CommandMenu
               {label}
             </CommandItem>
           ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Convert">
+          <CommandItem value="typescript interface ts types" onSelect={() => run("convert-ts")}>
+            <Code2 className="h-4 w-4 text-blue-500" />
+            JSON → TypeScript
+          </CommandItem>
+          <CommandItem value="jsonpath query playground search" onSelect={() => run("convert-jsonpath")}>
+            <Search className="h-4 w-4 text-green-500" />
+            JSONPath Playground
+          </CommandItem>
+          <CommandItem value="csv spreadsheet export import table" onSelect={() => run("convert-csv")}>
+            <Table className="h-4 w-4 text-orange-500" />
+            JSON ↔ CSV
+          </CommandItem>
+          <CommandItem value="yaml convert export import" onSelect={() => run("convert-yaml")}>
+            <FileText className="h-4 w-4 text-yellow-500" />
+            JSON ↔ YAML
+          </CommandItem>
+          <CommandItem value="schema inference draft json schema" onSelect={() => run("convert-schema")}>
+            <Braces className="h-4 w-4 text-violet-500" />
+            JSON Schema Inference
+          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />

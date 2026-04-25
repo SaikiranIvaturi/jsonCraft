@@ -6,6 +6,12 @@ import {
   Share2,
   Terminal,
   HelpCircle,
+  ChevronDown,
+  Code2,
+  Search,
+  Table,
+  FileText,
+  Braces,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
@@ -14,8 +20,44 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn, isMac, shortcut } from "@/lib/utils";
 import type { Mode, Theme } from "@/types";
+
+const CHANGELOG: { version: string; label: string; items: string[] }[] = [
+  {
+    version: "1.1.0",
+    label: "Latest",
+    items: [
+      "JSON → TypeScript interface generator",
+      "JSONPath query playground",
+      "JSON ↔ CSV converter",
+      "JSON ↔ YAML converter",
+      "JSON Schema inference",
+    ],
+  },
+  {
+    version: "1.0.0",
+    label: "Initial release",
+    items: [
+      "Formatter, minifier & validator",
+      "JSON Diff & compare",
+      "Tree explorer",
+      "Multi-tab workspaces",
+      "Command palette (⌘K)",
+      "Drag & drop file upload",
+      "Share via URL",
+      "JSON Analyzer",
+    ],
+  },
+];
 
 interface TopNavProps {
   mode: Mode;
@@ -23,6 +65,7 @@ interface TopNavProps {
   onShare: () => void;
   onCommandMenu: () => void;
   onShowFeatures: () => void;
+  onConvert: (tool: string) => void;
   theme: Theme;
   onThemeToggle: () => void;
 }
@@ -44,6 +87,7 @@ export function TopNav({
   onShare,
   onCommandMenu,
   onShowFeatures,
+  onConvert,
   theme,
   onThemeToggle,
 }: TopNavProps) {
@@ -55,6 +99,46 @@ export function TopNav({
           <Terminal className="h-4 w-4 text-primary-foreground" />
         </div>
         <span className="font-semibold text-sm tracking-tight">JSONCraft</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="hidden sm:inline text-[10px] font-mono text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded cursor-default select-none hover:text-foreground hover:bg-muted/80 transition-colors">
+              v{__APP_VERSION__}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            align="start"
+            className="p-0 max-w-[260px] overflow-hidden"
+          >
+            <div className="px-3 py-2 border-b border-border">
+              <p className="text-xs font-semibold">What's new</p>
+            </div>
+            <div className="p-2 flex flex-col gap-3">
+              {CHANGELOG.map((release) => (
+                <div key={release.version}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10px] font-mono font-semibold text-primary">
+                      v{release.version}
+                    </span>
+                    {release.label === "Latest" && (
+                      <span className="text-[9px] bg-primary/15 text-primary px-1 py-0.5 rounded font-medium">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+                  <ul className="flex flex-col gap-0.5">
+                    {release.items.map((item) => (
+                      <li key={item} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                        <span className="mt-[3px] shrink-0 h-1 w-1 rounded-full bg-muted-foreground/40" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Mode tabs */}
@@ -79,6 +163,42 @@ export function TopNav({
 
       {/* Actions */}
       <div className="flex items-center gap-1 shrink-0">
+        {/* Convert dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="hidden sm:flex gap-1.5 text-xs">
+              Convert
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel>Convert JSON</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onConvert("ts")}>
+              <Code2 className="h-4 w-4 text-blue-500" />
+              JSON → TypeScript
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onConvert("jsonpath")}>
+              <Search className="h-4 w-4 text-green-500" />
+              JSONPath Playground
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onConvert("csv")}>
+              <Table className="h-4 w-4 text-orange-500" />
+              JSON ↔ CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onConvert("yaml")}>
+              <FileText className="h-4 w-4 text-yellow-500" />
+              JSON ↔ YAML
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onConvert("schema")}>
+              <Braces className="h-4 w-4 text-violet-500" />
+              JSON Schema
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary SEO -->
-    <title>JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool</title>
-    <meta name="description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. No signup. Privacy-first — everything runs in your browser, nothing is sent to a server." />
-    <meta name="keywords" content="json formatter, json validator, json diff, json tree, json minifier, json beautifier, online json tool, json explorer, format json online, validate json, compare json, jsoncraft" />
+    <title>JSONCraft — JSON Formatter, TypeScript &amp; YAML Converter Online</title>
+    <meta name="description" content="Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. Free, no signup — everything runs in your browser." />
+    <meta name="keywords" content="json formatter, json validator, json to typescript, json to yaml, json to csv, json schema generator, jsonpath tester, json diff, json tree explorer, json minifier, json beautifier, format json online, validate json online, json converter, jsoncraft" />
     <meta name="author" content="Ivaturi Sai Kiran" />
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://jsoncraft.in/" />
 
     <!-- Favicon & icons -->
@@ -23,20 +23,20 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="JSONCraft" />
     <meta property="og:url" content="https://jsoncraft.in/" />
-    <meta property="og:title" content="JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool" />
-    <meta property="og:description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — runs entirely in your browser." />
+    <meta property="og:title" content="JSONCraft — JSON Formatter, TypeScript &amp; YAML Converter Online" />
+    <meta property="og:description" content="Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. Free, no signup — everything runs in your browser." />
     <meta property="og:image" content="https://jsoncraft.in/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="JSONCraft — JSON toolkit for developers" />
+    <meta property="og:image:alt" content="JSONCraft — Free JSON tools for developers" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="JSONCraft — Free JSON Formatter, Validator &amp; Diff Tool" />
-    <meta name="twitter:description" content="Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — runs entirely in your browser." />
+    <meta name="twitter:title" content="JSONCraft — JSON Formatter, TypeScript &amp; YAML Converter Online" />
+    <meta name="twitter:description" content="Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema. Run JSONPath queries. Free, no signup — everything runs in your browser." />
     <meta name="twitter:image" content="https://jsoncraft.in/og-image.png" />
-    <meta name="twitter:image:alt" content="JSONCraft — JSON toolkit for developers" />
+    <meta name="twitter:image:alt" content="JSONCraft — Free JSON tools for developers" />
 
     <!-- Structured data -->
     <script type="application/ld+json">
@@ -44,23 +44,33 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "JSONCraft",
+      "alternateName": ["JSON Formatter Online", "JSON to TypeScript Converter", "JSON to YAML Converter"],
       "url": "https://jsoncraft.in/",
-      "description": "Free online JSON formatter, validator, diff tool, tree explorer and minifier. Privacy-first — everything runs in your browser.",
+      "description": "Free online JSON toolkit. Format, validate and diff JSON. Convert JSON to TypeScript interfaces, YAML, CSV or JSON Schema. Run JSONPath queries. Privacy-first — everything runs in your browser.",
       "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "JSON Tools",
       "operatingSystem": "Any",
       "browserRequirements": "Requires a modern browser with JavaScript enabled",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "JSON Formatter and Beautifier",
         "JSON Validator with line-level error reporting",
+        "JSON Minifier",
         "JSON Diff and Compare",
         "JSON Tree Explorer",
-        "JSON Minifier",
-        "JSON Analyzer",
+        "JSON Analyzer with structural statistics",
+        "JSON to TypeScript interface generator",
+        "JSONPath query playground",
+        "JSON to CSV converter",
+        "CSV to JSON converter",
+        "JSON to YAML converter",
+        "YAML to JSON converter",
+        "JSON Schema inference (Draft 7)",
         "Multi-tab workspaces",
         "Drag and drop file upload",
-        "Share via URL"
+        "Share JSON via URL"
       ],
+      "screenshot": "https://jsoncraft.in/og-image.png",
       "creator": {
         "@type": "Person",
         "name": "Ivaturi Sai Kiran",
@@ -83,7 +93,65 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static content for search crawlers that don't execute JavaScript.
+        This is replaced by the React app on load.
+      -->
+      <noscript>
+        <style>
+          body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+          h1 { font-size: 1.75rem; }
+          h2 { font-size: 1.25rem; margin-top: 2rem; }
+          ul { line-height: 2; }
+        </style>
+        <h1>JSONCraft — Free JSON Tools for Developers</h1>
+        <p>
+          JSONCraft is a free, privacy-first online JSON toolkit. Format, validate, diff and explore JSON.
+          Convert JSON to TypeScript interfaces, YAML, CSV and JSON Schema.
+          Run JSONPath queries. No signup required — everything runs entirely in your browser.
+        </p>
+
+        <h2>JSON Formatter &amp; Validator</h2>
+        <p>Paste or type JSON and instantly format it with 2- or 4-space indentation. Real-time validation highlights syntax errors at the exact line. Sort keys alphabetically, minify to reduce size, or beautify minified JSON.</p>
+
+        <h2>JSON to TypeScript Interface Generator</h2>
+        <p>Paste a JSON object or array and get clean TypeScript interfaces instantly. Handles nested objects, arrays with union types, and optional fields inferred from mixed arrays — similar to quicktype but right in your browser.</p>
+
+        <h2>JSONPath Playground</h2>
+        <p>Write JSONPath expressions like <code>$.users[?(@.age &gt; 30)].email</code> and see the matching values highlighted in real time. Supports the full JSONPath spec via jsonpath-plus.</p>
+
+        <h2>JSON to YAML Converter</h2>
+        <p>Convert JSON to YAML or YAML to JSON instantly. Useful for Kubernetes configs, Docker Compose, GitHub Actions workflows and other DevOps tooling.</p>
+
+        <h2>JSON to CSV Converter</h2>
+        <p>Convert a JSON array of objects to CSV for spreadsheet import. Nested objects are flattened with dot notation. Reverse direction converts CSV back to a JSON array with automatic type inference.</p>
+
+        <h2>JSON Schema Inference</h2>
+        <p>Paste a JSON document and instantly get a JSON Schema Draft 7 definition. Required fields, types, and nested structures are detected automatically.</p>
+
+        <h2>JSON Diff &amp; Compare</h2>
+        <p>Paste two JSON documents and see additions, deletions and modifications highlighted side by side. A changes summary lists every difference with path, old value and new value.</p>
+
+        <h2>JSON Tree Explorer</h2>
+        <p>Browse large JSON documents as a collapsible tree. Click any node to copy its JSONPath. Handles deeply nested objects and arrays with thousands of nodes.</p>
+
+        <h2>JSON Analyzer</h2>
+        <p>Analyze your JSON document's structure: total node count, max depth, type distribution, most common keys, array statistics and empty/null value counts.</p>
+
+        <h2>Features</h2>
+        <ul>
+          <li>100% free — no account, no API key, no rate limits</li>
+          <li>Privacy-first — your JSON never leaves your device</li>
+          <li>Works offline after first load</li>
+          <li>Multi-tab workspaces — work on multiple JSONs at once</li>
+          <li>Drag and drop file upload (.json, .txt, .log)</li>
+          <li>Share JSON via URL — encode your document in a shareable link</li>
+          <li>Command palette (Ctrl+K / ⌘K) for keyboard-driven workflow</li>
+          <li>Dark and light mode</li>
+        </ul>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

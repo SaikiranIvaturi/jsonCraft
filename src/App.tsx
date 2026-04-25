@@ -10,6 +10,11 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { AnalyzeDialog } from "@/components/AnalyzeDialog";
 import { FeaturesDialog } from "@/components/FeaturesDialog";
 import { AboutDialog } from "@/components/AboutDialog";
+import { JsonToTsDialog } from "@/components/JsonToTsDialog";
+import { JsonPathDialog } from "@/components/JsonPathDialog";
+import { JsonCsvDialog } from "@/components/JsonCsvDialog";
+import { JsonYamlDialog } from "@/components/JsonYamlDialog";
+import { JsonSchemaDialog } from "@/components/JsonSchemaDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { JsonEditor } from "@/components/editor/JsonEditor";
 import { DiffEditor } from "@/components/editor/DiffEditor";
@@ -196,6 +201,11 @@ export default function App() {
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
   const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+  const [jsonToTsOpen, setJsonToTsOpen] = useState(false);
+  const [jsonPathOpen, setJsonPathOpen] = useState(false);
+  const [jsonCsvOpen, setJsonCsvOpen] = useState(false);
+  const [jsonYamlOpen, setJsonYamlOpen] = useState(false);
+  const [jsonSchemaOpen, setJsonSchemaOpen] = useState(false);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
   const [mobileCopied, setMobileCopied] = useState(false);
@@ -355,6 +365,16 @@ export default function App() {
         monacoEditorRef.current?.trigger("keyboard", "editor.unfoldAll", {});
       } else if (action === "jump-bracket") {
         monacoEditorRef.current?.getAction("editor.action.jumpToBracket")?.run();
+      } else if (action === "convert-ts") {
+        setJsonToTsOpen(true);
+      } else if (action === "convert-jsonpath") {
+        setJsonPathOpen(true);
+      } else if (action === "convert-csv") {
+        setJsonCsvOpen(true);
+      } else if (action === "convert-yaml") {
+        setJsonYamlOpen(true);
+      } else if (action === "convert-schema") {
+        setJsonSchemaOpen(true);
       } else if (action.startsWith("example-")) {
         const key = action.slice("example-".length);
         const example = EXAMPLES[key];
@@ -387,6 +407,14 @@ export default function App() {
   const handleShare = useCallback(() => setShareDialogOpen(true), []);
   const handleAnalyze = useCallback(() => setAnalyzeDialogOpen(true), []);
   const handleCommandMenu = useCallback(() => setCommandMenuOpen(true), []);
+
+  const handleConvert = useCallback((tool: string) => {
+    if (tool === "ts") setJsonToTsOpen(true);
+    else if (tool === "jsonpath") setJsonPathOpen(true);
+    else if (tool === "csv") setJsonCsvOpen(true);
+    else if (tool === "yaml") setJsonYamlOpen(true);
+    else if (tool === "schema") setJsonSchemaOpen(true);
+  }, []);
 
   useKeyboardShortcuts({
     onFormat: handleFormat,
@@ -446,6 +474,7 @@ export default function App() {
           onShare={() => setShareDialogOpen(true)}
           onCommandMenu={() => setCommandMenuOpen(true)}
           onShowFeatures={() => setFeaturesDialogOpen(true)}
+          onConvert={handleConvert}
           theme={theme}
           onThemeToggle={toggleTheme}
         />
@@ -755,6 +784,12 @@ export default function App() {
         <FeaturesDialog open={featuresDialogOpen} onOpenChange={setFeaturesDialogOpen} />
 
         <AboutDialog open={aboutDialogOpen} onOpenChange={setAboutDialogOpen} />
+
+        <JsonToTsDialog open={jsonToTsOpen} onOpenChange={setJsonToTsOpen} json={json} />
+        <JsonPathDialog open={jsonPathOpen} onOpenChange={setJsonPathOpen} json={json} />
+        <JsonCsvDialog open={jsonCsvOpen} onOpenChange={setJsonCsvOpen} json={json} />
+        <JsonYamlDialog open={jsonYamlOpen} onOpenChange={setJsonYamlOpen} json={json} />
+        <JsonSchemaDialog open={jsonSchemaOpen} onOpenChange={setJsonSchemaOpen} json={json} />
 
         <Toaster
           position="bottom-right"
