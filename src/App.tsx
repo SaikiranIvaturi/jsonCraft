@@ -800,6 +800,16 @@ export default function App() {
               </div>
 
               <InfoPanel {...infoPanelProps} />
+
+              <div className="px-4 py-3 border-t border-border mt-1 flex items-center justify-between">
+                <p className="text-xs text-muted-foreground/60">🔒 All processing in your browser</p>
+                <button
+                  onClick={() => { setAboutDialogOpen(true); setShowMobilePanel(false); }}
+                  className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors"
+                >
+                  Built by Ivaturi Sai Kiran
+                </button>
+              </div>
             </div>
           </div>
         )}
