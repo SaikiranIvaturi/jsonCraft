@@ -4,7 +4,6 @@ import {
   GitCompare,
   TreePine,
   Share2,
-  Terminal,
   HelpCircle,
   ChevronDown,
   Code2,
@@ -96,7 +95,20 @@ export function TopNav({
       {/* Logo */}
       <div className="flex items-center gap-2 shrink-0">
         <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-          <Terminal className="h-4 w-4 text-primary-foreground" />
+          {/* Faceted gem — crown / girdle / pavilion */}
+          <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-primary-foreground" aria-hidden="true">
+            <path
+              d="M8 4h8l5 6-9 10L3 10l5-6z"
+              fill="currentColor" fillOpacity="0.18"
+              stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"
+            />
+            <path
+              d="M8 4L12 10M16 4L12 10M12 4L12 10M3 10L21 10M12 10L12 20"
+              stroke="currentColor" strokeWidth="0.9"
+              strokeOpacity="0.65" strokeLinecap="round"
+            />
+            <path d="M8 4L3 10L5.5 7Z" fill="currentColor" fillOpacity="0.28" />
+          </svg>
         </div>
         <span className="font-semibold text-sm tracking-tight">JSONCraft</span>
         <Tooltip>
