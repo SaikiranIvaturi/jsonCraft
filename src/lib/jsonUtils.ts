@@ -432,7 +432,7 @@ function transformNonStrings(s: string, fn: (chunk: string) => string): string {
 function repairBareKeys(s: string, changes: string[]): string {
   let changed = false
   const fixed = transformNonStrings(s, (chunk) =>
-    chunk.replace(/([\{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, (_m, prefix, key) => {
+    chunk.replace(/([{,]?\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, (_m, prefix, key) => {
       changed = true
       return `${prefix}"${key}":`
     })
