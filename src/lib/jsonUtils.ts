@@ -296,8 +296,8 @@ export function repairJson(input: string): { fixed: string; changes: string[] } 
   s = repairStripComments(s, changes)        // // and /* */ comments
   s = repairSingleQuotes(s, changes)         // '...' → "..."
   s = repairTemplateLiterals(s, changes)     // `...` → "..."
-  s = repairStringControlChars(s, changes)   // escape raw \n \t \r inside strings
   s = repairUnescapedBackslashes(s, changes) // fix bad \ escapes (Windows paths etc.)
+  s = repairStringControlChars(s, changes)   // escape raw \n \t \r inside strings
   // From here all strings are "..." — transformNonStrings is safe.
   s = repairBareKeys(s, changes)             // {foo: → {"foo":
   s = repairLiterals(s, changes)             // True/False/None → true/false/null
