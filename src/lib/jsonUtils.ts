@@ -292,11 +292,23 @@ export function repairJson(input: string): { fixed: string; changes: string[] } 
   const changes: string[] = []
   let s = input.trim().replace(/^﻿/, '') // strip BOM
 
-  s = repairStripComments(s, changes)
-  s = repairSingleQuotes(s, changes)
-  s = repairBareKeys(s, changes)
-  s = repairTrailingCommas(s, changes)
-  s = repairInvalidTokens(s, changes)
+  s = repairMarkdownFences(s, changes)       // unwrap ```json ... ```
+  s = repairStripComments(s, changes)        // // and /* */ comments
+  s = repairSingleQuotes(s, changes)         // '...' → "..."
+  s = repairTemplateLiterals(s, changes)     // `...` → "..."
+  s = repairStringControlChars(s, changes)   // escape raw \n \t \r inside strings
+  s = repairUnescapedBackslashes(s, changes) // fix bad \ escapes (Windows paths etc.)
+  // From here all strings are "..." — transformNonStrings is safe.
+  s = repairBareKeys(s, changes)             // {foo: → {"foo":
+  s = repairLiterals(s, changes)             // True/False/None → true/false/null
+  s = repairInvalidTokens(s, changes)        // undefined/NaN/Infinity → null
+  s = repairNumberLiterals(s, changes)       // 0xFF / 0o7 / 0b1 → decimal
+  s = repairBareValues(s, changes)           // {k: active} → {k: "active"}
+  s = repairMissingValues(s, changes)        // {"k":,} → {"k":null,}
+  s = repairTrailingCommas(s, changes)       // [1,] → [1]
+  s = repairMissingCommas(s, changes)        // [1 2] → [1,2]
+  s = repairBraceBalance(s, changes)         // close unclosed { [, fix mismatched ] }
+  s = repairMultipleRoots(s, changes)        // {...}{...} → [{...},{...}]
 
   try {
     const parsed = JSON.parse(s)
@@ -393,7 +405,7 @@ function repairSingleQuotes(s: string, changes: string[]): string {
   return result
 }
 
-// After repairSingleQuotes all strings are double-quoted; transform non-string parts only.
+// All strings are "..." from here — safe to use transformNonStrings.
 function transformNonStrings(s: string, fn: (chunk: string) => string): string {
   let result = ''
   let i = 0
@@ -448,6 +460,290 @@ function repairInvalidTokens(s: string, changes: string[]): string {
   })
   if (changed) changes.push('Replaced undefined / NaN / Infinity with null')
   return fixed
+}
+
+function repairMarkdownFences(s: string, changes: string[]): string {
+  const m = s.match(/^`{3}(?:[a-z]*)?\s*\r?\n?([\s\S]*?)\r?\n?`{3}\s*$/i)
+  if (m) { changes.push('Stripped markdown code fence'); return m[1].trim() }
+  return s
+}
+
+function repairTemplateLiterals(s: string, changes: string[]): string {
+  let result = ''
+  let i = 0
+  let changed = false
+  while (i < s.length) {
+    if (s[i] === '"') {
+      result += s[i++]
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2 }
+        else if (s[i] === '"') { result += s[i++]; break }
+        else result += s[i++]
+      }
+      continue
+    }
+    if (s[i] === '`') {
+      changed = true; result += '"'; i++
+      while (i < s.length) {
+        if (s[i] === '`') { result += '"'; i++; break }
+        if (s[i] === '"') { result += '\\"'; i++; continue }
+        if (s[i] === '\\' && i + 1 < s.length) {
+          if (s[i + 1] === '`') { result += '`'; i += 2 }
+          else { result += s[i] + s[i + 1]; i += 2 }
+          continue
+        }
+        result += s[i++]
+      }
+      continue
+    }
+    result += s[i++]
+  }
+  if (changed) changes.push('Converted template literals to strings')
+  return result
+}
+
+function repairStringControlChars(s: string, changes: string[]): string {
+  let result = ''
+  let i = 0
+  let changed = false
+  while (i < s.length) {
+    if (s[i] !== '"') { result += s[i++]; continue }
+    result += '"'; i++
+    while (i < s.length) {
+      const ch = s[i]
+      if (ch === '\\' && i + 1 < s.length) { result += ch + s[i + 1]; i += 2; continue }
+      if (ch === '"') { result += '"'; i++; break }
+      const code = ch.charCodeAt(0)
+      if (code < 0x20) {
+        changed = true
+        if (code === 0x09) result += '\\t'
+        else if (code === 0x0a) result += '\\n'
+        else if (code === 0x0d) result += '\\r'
+        else result += `\\u${code.toString(16).padStart(4, '0')}`
+        i++; continue
+      }
+      result += ch; i++
+    }
+  }
+  if (changed) changes.push('Escaped control characters in strings')
+  return result
+}
+
+function repairUnescapedBackslashes(s: string, changes: string[]): string {
+  const VALID = new Set(['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u'])
+  let result = ''
+  let i = 0
+  let changed = false
+  while (i < s.length) {
+    if (s[i] !== '"') { result += s[i++]; continue }
+    result += '"'; i++
+    while (i < s.length) {
+      if (s[i] === '"') { result += '"'; i++; break }
+      if (s[i] === '\\') {
+        const next = s[i + 1]
+        if (next !== undefined && VALID.has(next)) {
+          if (next === 'u') {
+            const hex = s.slice(i + 2, i + 6)
+            if (/^[0-9a-fA-F]{4}$/.test(hex)) { result += '\\u' + hex; i += 6 }
+            else { result += '\\\\'; i++; changed = true }
+          } else { result += s[i] + next; i += 2 }
+        } else { result += '\\\\'; i++; changed = true }
+        continue
+      }
+      result += s[i++]
+    }
+  }
+  if (changed) changes.push('Escaped invalid backslashes in strings')
+  return result
+}
+
+function repairLiterals(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) => {
+    const before = chunk
+    const after = chunk
+      .replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false').replace(/\bNone\b/g, 'null')
+      .replace(/\bNULL\b/g, 'null').replace(/\bTRUE\b/g, 'true').replace(/\bFALSE\b/g, 'false')
+    if (after !== before) changed = true
+    return after
+  })
+  if (changed) changes.push('Converted Python/Ruby literals to JSON')
+  return fixed
+}
+
+function repairNumberLiterals(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) => {
+    let after = chunk
+    after = after.replace(/\b0[xX][0-9a-fA-F]+\b/g, m => { changed = true; return String(parseInt(m, 16)) })
+    after = after.replace(/\b0[oO][0-7]+\b/g,        m => { changed = true; return String(parseInt(m, 8)) })
+    after = after.replace(/\b0[bB][01]+\b/g,          m => { changed = true; return String(parseInt(m, 2)) })
+    return after
+  })
+  if (changed) changes.push('Converted hex/octal/binary number literals')
+  return fixed
+}
+
+function repairBareValues(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) => {
+    const after = chunk.replace(
+      /([:,\[]\s*)([a-zA-Z_$][a-zA-Z0-9_$-]*)\b/g,
+      (_m, prefix, word) => {
+        if (/^(true|false|null)$/.test(word)) return _m
+        changed = true
+        return `${prefix}"${word}"`
+      }
+    )
+    return after
+  })
+  if (changed) changes.push('Quoted unquoted string values')
+  return fixed
+}
+
+function repairMissingValues(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) => {
+    let after = chunk
+    after = after.replace(/(:\s*)([,}\]])/g, (_m, colon, closer) => { changed = true; return `${colon}null${closer}` })
+    after = after.replace(/,(\s*),/g, () => { changed = true; return ',null,' })
+    after = after.replace(/(\[\s*),/g, (_m, open) => { changed = true; return `${open}null,` })
+    return after
+  })
+  if (changed) changes.push('Replaced missing values with null')
+  return fixed
+}
+
+function repairMissingCommas(s: string, changes: string[]): string {
+  let result = ''
+  let i = 0
+  let changed = false
+  let lastWasValue = false
+  let lastWasColon = false
+
+  const maybeComma = () => { if (lastWasValue && !lastWasColon) { result += ','; changed = true } }
+
+  while (i < s.length) {
+    const ch = s[i]
+    if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') { result += ch; i++; continue }
+    if (ch === '"') {
+      maybeComma(); result += ch; i++
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2; continue }
+        if (s[i] === '"') { result += s[i++]; break }
+        result += s[i++]
+      }
+      lastWasValue = true; lastWasColon = false; continue
+    }
+    if (ch === '{' || ch === '[') {
+      maybeComma(); result += ch; i++; lastWasValue = false; lastWasColon = false; continue
+    }
+    if (ch === '}' || ch === ']') {
+      result += ch; i++; lastWasValue = true; lastWasColon = false; continue
+    }
+    if (ch === ',') {
+      result += ch; i++; lastWasValue = false; lastWasColon = false; continue
+    }
+    if (ch === ':') {
+      result += ch; i++; lastWasValue = false; lastWasColon = true; continue
+    }
+    if (ch === '-' || (ch >= '0' && ch <= '9')) {
+      maybeComma()
+      while (i < s.length && /[-\d.eE+]/.test(s[i])) result += s[i++]
+      lastWasValue = true; lastWasColon = false; continue
+    }
+    if (ch === 't' || ch === 'f' || ch === 'n') {
+      const rest = s.slice(i)
+      const tok = rest.startsWith('true') ? 'true' : rest.startsWith('false') ? 'false' : rest.startsWith('null') ? 'null' : null
+      if (tok) {
+        maybeComma(); result += tok; i += tok.length; lastWasValue = true; lastWasColon = false; continue
+      }
+    }
+    result += ch; i++
+  }
+  if (changed) changes.push('Inserted missing commas')
+  return result
+}
+
+function repairBraceBalance(s: string, changes: string[]): string {
+  let result = ''
+  const stack: ('}' | ']')[] = []
+  let i = 0
+  let hadMismatch = false
+  let hadExtra = false
+
+  while (i < s.length) {
+    if (s[i] === '"') {
+      result += s[i++]
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2 }
+        else if (s[i] === '"') { result += s[i++]; break }
+        else result += s[i++]
+      }
+      continue
+    }
+    const ch = s[i]
+    if (ch === '{') { stack.push('}'); result += ch; i++ }
+    else if (ch === '[') { stack.push(']'); result += ch; i++ }
+    else if (ch === '}' || ch === ']') {
+      if (stack.length > 0) {
+        const expected = stack[stack.length - 1]
+        result += expected !== ch ? (hadMismatch = true, expected) : ch
+        stack.pop()
+      } else { hadExtra = true }
+      i++
+    } else { result += ch; i++ }
+  }
+
+  if (hadMismatch) changes.push('Fixed mismatched brackets')
+  if (hadExtra)   changes.push('Removed extra closing brackets')
+  if (stack.length > 0) {
+    result += stack.reverse().join('')
+    changes.push(`Added ${stack.length} missing closing bracket${stack.length > 1 ? 's' : ''}`)
+  }
+  return result
+}
+
+function repairMultipleRoots(s: string, changes: string[]): string {
+  const text = s.trim()
+  try { JSON.parse(text); return s } catch { /* */ }
+
+  const roots: string[] = []
+  let depth = 0
+  let inStr = false
+  let start = -1
+  let i = 0
+
+  while (i < text.length) {
+    const ch = text[i]
+    if (inStr) {
+      if (ch === '\\' && i + 1 < text.length) { i += 2; continue }
+      if (ch === '"') inStr = false
+      i++; continue
+    }
+    if (/\s/.test(ch)) {
+      if (depth === 0 && start >= 0 && text[start] !== '{' && text[start] !== '[' && text[start] !== '"') {
+        roots.push(text.slice(start, i)); start = -1
+      }
+      i++; continue
+    }
+    if (ch === '"') { if (depth === 0 && start < 0) start = i; inStr = true; i++; continue }
+    if (ch === '{' || ch === '[') { if (depth === 0) start = i; depth++; i++; continue }
+    if (ch === '}' || ch === ']') {
+      depth--
+      if (depth === 0 && start >= 0) { roots.push(text.slice(start, i + 1)); start = -1 }
+      i++; continue
+    }
+    if (depth === 0 && start < 0) start = i
+    i++
+  }
+  if (start >= 0 && depth === 0) roots.push(text.slice(start))
+
+  if (roots.length > 1) {
+    changes.push(`Wrapped ${roots.length} root values in an array`)
+    return '[\n' + roots.join(',\n') + '\n]'
+  }
+  return s
 }
 
 // --- Analysis ---
