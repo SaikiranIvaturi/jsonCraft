@@ -1670,12 +1670,12 @@ function TabStructureView({ parsed }: { parsed: unknown }) {
                 </span>
               )}
               <div className="flex-1 min-w-0">
-                {nameKey && current[nameKey] && (
+                {nameKey && !!current[nameKey] && (
                   <h3 className="font-semibold text-base text-foreground leading-snug">
                     {String(current[nameKey])}
                   </h3>
                 )}
-                {current.pattern_description && (
+                {!!current.pattern_description && (
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                     {String(current.pattern_description)}
                   </p>
