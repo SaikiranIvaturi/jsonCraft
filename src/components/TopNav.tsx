@@ -11,6 +11,7 @@ import {
   Table,
   FileText,
   Braces,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
@@ -207,6 +208,11 @@ export function TopNav({
             <DropdownMenuItem onSelect={() => onConvert("schema")}>
               <Braces className="h-4 w-4 text-violet-500" />
               JSON Schema
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onConvert("visualize")}>
+              <Eye className="h-4 w-4 text-primary" />
+              Visualize JSON
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

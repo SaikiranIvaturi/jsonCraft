@@ -11,6 +11,7 @@ import {
 import { shortcut } from "@/lib/utils";
 import {
   Wand2,
+  Wrench,
   GitCompare,
   TreePine,
   Trash2,
@@ -30,11 +31,13 @@ import {
   Code2,
   Table,
   FileText,
+  Eye,
 } from "lucide-react";
 import { EXAMPLES } from "@/lib/examples";
 import type { Theme } from "@/types";
 
 type ActionId =
+  | "fix"
   | "format"
   | "minify"
   | "validate"
@@ -56,6 +59,7 @@ type ActionId =
   | "convert-csv"
   | "convert-yaml"
   | "convert-schema"
+  | "convert-visualize"
   | `example-${string}`;
 
 interface CommandMenuProps {
@@ -80,6 +84,10 @@ export function CommandMenu({ open, onOpenChange, onAction, theme }: CommandMenu
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Actions">
+          <CommandItem value="fix repair json errors" onSelect={() => run("fix")}>
+            <Wrench className="h-4 w-4 text-amber-500" />
+            Fix / Repair JSON
+          </CommandItem>
           <CommandItem value="format json" onSelect={() => run("format")}>
             <Wand2 className="h-4 w-4 text-primary" />
             Format JSON
@@ -188,6 +196,10 @@ export function CommandMenu({ open, onOpenChange, onAction, theme }: CommandMenu
           <CommandItem value="schema inference draft json schema" onSelect={() => run("convert-schema")}>
             <Braces className="h-4 w-4 text-violet-500" />
             JSON Schema Inference
+          </CommandItem>
+          <CommandItem value="visualize view table cards bar chart pie stats" onSelect={() => run("convert-visualize")}>
+            <Eye className="h-4 w-4 text-primary" />
+            Visualize JSON
           </CommandItem>
         </CommandGroup>
 

@@ -12,6 +12,8 @@ import {
   Wand2,
   Minimize2,
   Trash2,
+  Wrench,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -39,6 +41,8 @@ interface InfoPanelProps {
   onFormat: () => void;
   onMinify: () => void;
   onClear: () => void;
+  onFix?: () => void;
+  onVisualize?: () => void;
 }
 
 function StatRow({ label, value }: { label: string; value: string | number }) {
@@ -86,6 +90,8 @@ export function InfoPanel({
   onFormat,
   onMinify,
   onClear,
+  onFix,
+  onVisualize,
 }: InfoPanelProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const validationResult = useJsonValidation(json);
@@ -130,7 +136,7 @@ export function InfoPanel({
             <span className="text-xs font-medium">Valid JSON</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 text-destructive">
               <XCircle className="h-4 w-4 shrink-0" />
               <span className="text-xs font-medium">Invalid JSON</span>
@@ -143,6 +149,17 @@ export function InfoPanel({
                   {validationResult.error.column}
                 </span>
               </p>
+            )}
+            {onFix && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onFix}
+                className="mt-0.5 gap-1.5 text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60 hover:text-amber-600 dark:hover:text-amber-400"
+              >
+                <Wrench className="h-3.5 w-3.5" />
+                Fix JSON
+              </Button>
             )}
           </div>
         )}
@@ -309,6 +326,24 @@ export function InfoPanel({
           </TooltipTrigger>
           <TooltipContent>Download as jsoncraft.json</TooltipContent>
         </Tooltip>
+
+        {onVisualize && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="default"
+                onClick={onVisualize}
+                disabled={isEmpty || !validationResult.valid}
+                className="w-full gap-2"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Visualize
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View JSON as table, cards, charts &amp; stats</TooltipContent>
+          </Tooltip>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>

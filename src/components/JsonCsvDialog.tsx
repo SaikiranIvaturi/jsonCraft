@@ -68,7 +68,7 @@ export function JsonCsvDialog({ open, onOpenChange, json }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col gap-4">
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col gap-4 overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Table className="h-4 w-4 text-orange-500" />
@@ -109,11 +109,11 @@ export function JsonCsvDialog({ open, onOpenChange, json }: Props) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-h-0 overflow-y-auto sm:overflow-visible">
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">{inputLabel}</span>
             <textarea
-              className="flex-1 min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 min-h-[160px] sm:min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={placeholder}
@@ -140,11 +140,11 @@ export function JsonCsvDialog({ open, onOpenChange, json }: Props) {
               </Button>
             </div>
             {error ? (
-              <div className="flex-1 min-h-[240px] rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive font-mono break-all">
+              <div className="flex-1 min-h-[160px] sm:min-h-[240px] rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive font-mono break-all">
                 {error}
               </div>
             ) : (
-              <pre className="flex-1 min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 overflow-auto whitespace-pre-wrap break-words">
+              <pre className="flex-1 min-h-[160px] sm:min-h-[240px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 overflow-auto whitespace-pre-wrap break-words">
                 {output || (
                   <span className="text-muted-foreground">Output will appear here…</span>
                 )}

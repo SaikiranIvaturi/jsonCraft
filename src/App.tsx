@@ -16,6 +16,7 @@ import { JsonPathDialog } from "@/components/JsonPathDialog";
 import { JsonCsvDialog } from "@/components/JsonCsvDialog";
 import { JsonYamlDialog } from "@/components/JsonYamlDialog";
 import { JsonSchemaDialog } from "@/components/JsonSchemaDialog";
+import { JsonVisualizeDialog } from "@/components/JsonVisualizeDialog";
 import { OnboardingTour, ONBOARDED_KEY } from "@/components/OnboardingTour";
 import { EmptyState } from "@/components/EmptyState";
 import { JsonEditor } from "@/components/editor/JsonEditor";
@@ -30,6 +31,7 @@ import {
   prepareForDiff,
   computeDiffStats,
   computeDiffDetails,
+  repairJson,
 } from "@/lib/jsonUtils";
 import { EXAMPLES } from "@/lib/examples";
 import { isMac, cn } from "@/lib/utils";
@@ -43,6 +45,8 @@ import {
   Copy,
   Check,
   Wand2,
+  Wrench,
+  Eye,
   SlidersHorizontal,
   Upload,
   Code2,
@@ -201,6 +205,7 @@ export default function App() {
   const [jsonCsvOpen, setJsonCsvOpen] = useState(false);
   const [jsonYamlOpen, setJsonYamlOpen] = useState(false);
   const [jsonSchemaOpen, setJsonSchemaOpen] = useState(false);
+  const [jsonVisualizeOpen, setJsonVisualizeOpen] = useState(false);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [renderSideBySide, setRenderSideBySide] = useState(() => window.innerWidth >= 640);
   const [showOnboarding, setShowOnboarding] = useState(
@@ -247,6 +252,19 @@ export default function App() {
       toast.error("Failed to minify");
     }
   }, [json, validationResult.valid, handleJsonChange]);
+
+  // ── Fix / Repair ────────────────────────────────────────────────────────
+  const handleFix = useCallback(() => {
+    if (!json.trim()) return;
+    const result = repairJson(json);
+    if (!result) {
+      toast.error("Could not auto-fix — try correcting it manually");
+      return;
+    }
+    handleJsonChange(result.fixed);
+    const summary = result.changes.join(" · ");
+    toast.success(`Fixed: ${summary}`);
+  }, [json, handleJsonChange]);
 
   // ── Drag-and-drop ────────────────────────────────────────────────────────
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -320,7 +338,9 @@ export default function App() {
   // ── Command menu actions ─────────────────────────────────────────────────
   const handleCommandAction = useCallback(
     (action: string) => {
-      if (action === "format") {
+      if (action === "fix") {
+        handleFix();
+      } else if (action === "format") {
         handleFormat();
       } else if (action === "minify") {
         handleMinify();
@@ -373,6 +393,8 @@ export default function App() {
         setJsonYamlOpen(true);
       } else if (action === "convert-schema") {
         setJsonSchemaOpen(true);
+      } else if (action === "convert-visualize") {
+        setJsonVisualizeOpen(true);
       } else if (action.startsWith("example-")) {
         const key = action.slice("example-".length);
         const example = EXAMPLES[key];
@@ -382,7 +404,7 @@ export default function App() {
         }
       }
     },
-    [handleFormat, handleMinify, handleModeChange, json, diffLeft, handleJsonChange, toggleTheme],
+    [handleFix, handleFormat, handleMinify, handleModeChange, json, diffLeft, handleJsonChange, toggleTheme],
   );
 
   // ── URL sharing ──────────────────────────────────────────────────────────
@@ -417,6 +439,7 @@ export default function App() {
     else if (tool === "csv") setJsonCsvOpen(true);
     else if (tool === "yaml") setJsonYamlOpen(true);
     else if (tool === "schema") setJsonSchemaOpen(true);
+    else if (tool === "visualize") setJsonVisualizeOpen(true);
   }, []);
 
   useKeyboardShortcuts({
@@ -466,6 +489,8 @@ export default function App() {
     onFormat: handleFormat,
     onMinify: handleMinify,
     onClear: () => handleJsonChange(""),
+    onFix: handleFix,
+    onVisualize: () => setJsonVisualizeOpen(true),
   };
 
   return (
@@ -646,15 +671,27 @@ export default function App() {
               </span>
             </div>
             {(mode === "format" || mode === "tree") && (
-              <Button
-                size="sm"
-                onClick={handleFormat}
-                disabled={isEmpty || !validationResult.valid}
-                className="shrink-0 gap-1.5"
-              >
-                <Wand2 className="h-3.5 w-3.5" />
-                Format
-              </Button>
+              !isEmpty && !validationResult.valid ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleFix}
+                  className="shrink-0 gap-1.5 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                >
+                  <Wrench className="h-3.5 w-3.5" />
+                  Fix
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={handleFormat}
+                  disabled={isEmpty}
+                  className="shrink-0 gap-1.5"
+                >
+                  <Wand2 className="h-3.5 w-3.5" />
+                  Format
+                </Button>
+              )
             )}
             <Button
               variant="outline"
@@ -707,6 +744,7 @@ export default function App() {
                     { tool: "csv", icon: Table, label: "JSON ↔ CSV", color: "text-orange-500" },
                     { tool: "yaml", icon: FileText, label: "JSON ↔ YAML", color: "text-yellow-500" },
                     { tool: "schema", icon: Braces, label: "JSON Schema", color: "text-violet-500" },
+                    { tool: "visualize", icon: Eye, label: "Visualize JSON", color: "text-primary" },
                   ].map(({ tool, icon: Icon, label, color }) => (
                     <button
                       key={tool}
@@ -789,6 +827,7 @@ export default function App() {
         <JsonCsvDialog open={jsonCsvOpen} onOpenChange={setJsonCsvOpen} json={json} />
         <JsonYamlDialog open={jsonYamlOpen} onOpenChange={setJsonYamlOpen} json={json} />
         <JsonSchemaDialog open={jsonSchemaOpen} onOpenChange={setJsonSchemaOpen} json={json} />
+        <JsonVisualizeDialog open={jsonVisualizeOpen} onOpenChange={setJsonVisualizeOpen} json={json} />
 
         <Toaster
           position="bottom-right"

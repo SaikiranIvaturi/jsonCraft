@@ -284,6 +284,172 @@ export function formatNumber(n: number): string {
   return n.toLocaleString()
 }
 
+// ─── JSON repair ─────────────────────────────────────────────────────────────
+
+export function repairJson(input: string): { fixed: string; changes: string[] } | null {
+  try { JSON.parse(input); return null; } catch { /* needs repair */ }
+
+  const changes: string[] = []
+  let s = input.trim().replace(/^﻿/, '') // strip BOM
+
+  s = repairStripComments(s, changes)
+  s = repairSingleQuotes(s, changes)
+  s = repairBareKeys(s, changes)
+  s = repairTrailingCommas(s, changes)
+  s = repairInvalidTokens(s, changes)
+
+  try {
+    const parsed = JSON.parse(s)
+    if (changes.length === 0) return null
+    return { fixed: JSON.stringify(parsed, null, 2), changes }
+  } catch {
+    return null
+  }
+}
+
+function repairStripComments(s: string, changes: string[]): string {
+  let result = ''
+  let i = 0
+  let changed = false
+
+  while (i < s.length) {
+    const ch = s[i]
+
+    if (ch === '"' || ch === "'") {
+      const q = ch
+      result += s[i++]
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2 }
+        else if (s[i] === q) { result += s[i++]; break }
+        else result += s[i++]
+      }
+      continue
+    }
+
+    if (ch === '/' && s[i + 1] === '/') {
+      changed = true
+      while (i < s.length && s[i] !== '\n') i++
+      continue
+    }
+
+    if (ch === '/' && s[i + 1] === '*') {
+      changed = true
+      i += 2
+      while (i < s.length && !(s[i] === '*' && s[i + 1] === '/')) i++
+      if (i < s.length) i += 2
+      continue
+    }
+
+    result += ch
+    i++
+  }
+
+  if (changed) changes.push('Removed JavaScript comments')
+  return result
+}
+
+function repairSingleQuotes(s: string, changes: string[]): string {
+  let result = ''
+  let i = 0
+  let changed = false
+
+  while (i < s.length) {
+    const ch = s[i]
+
+    if (ch === '"') {
+      result += s[i++]
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2 }
+        else if (s[i] === '"') { result += s[i++]; break }
+        else result += s[i++]
+      }
+      continue
+    }
+
+    if (ch === "'") {
+      changed = true
+      result += '"'
+      i++
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) {
+          const esc = s[i + 1]
+          if (esc === "'") { result += "'"; i += 2 }
+          else if (esc === '"') { result += '\\"'; i += 2 }
+          else { result += s[i] + esc; i += 2 }
+          continue
+        }
+        if (s[i] === '"') { result += '\\"'; i++; continue }
+        if (s[i] === "'") { result += '"'; i++; break }
+        result += s[i++]
+      }
+      continue
+    }
+
+    result += ch
+    i++
+  }
+
+  if (changed) changes.push('Replaced single quotes with double quotes')
+  return result
+}
+
+// After repairSingleQuotes all strings are double-quoted; transform non-string parts only.
+function transformNonStrings(s: string, fn: (chunk: string) => string): string {
+  let result = ''
+  let i = 0
+  let nonStr = ''
+
+  while (i < s.length) {
+    if (s[i] === '"') {
+      result += fn(nonStr)
+      nonStr = ''
+      result += s[i++]
+      while (i < s.length) {
+        if (s[i] === '\\' && i + 1 < s.length) { result += s[i] + s[i + 1]; i += 2 }
+        else if (s[i] === '"') { result += s[i++]; break }
+        else result += s[i++]
+      }
+      continue
+    }
+    nonStr += s[i++]
+  }
+  result += fn(nonStr)
+  return result
+}
+
+function repairBareKeys(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) =>
+    chunk.replace(/([\{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, (_m, prefix, key) => {
+      changed = true
+      return `${prefix}"${key}":`
+    })
+  )
+  if (changed) changes.push('Quoted unquoted object keys')
+  return fixed
+}
+
+function repairTrailingCommas(s: string, changes: string[]): string {
+  const fixed = transformNonStrings(s, (chunk) => chunk.replace(/,(\s*[}\]])/g, '$1'))
+  if (fixed !== s) changes.push('Removed trailing commas')
+  return fixed
+}
+
+function repairInvalidTokens(s: string, changes: string[]): string {
+  let changed = false
+  const fixed = transformNonStrings(s, (chunk) => {
+    const before = chunk
+    const after = chunk
+      .replace(/\bundefined\b/g, 'null')
+      .replace(/\bNaN\b/g, 'null')
+      .replace(/-?Infinity\b/g, 'null')
+    if (after !== before) changed = true
+    return after
+  })
+  if (changed) changes.push('Replaced undefined / NaN / Infinity with null')
+  return fixed
+}
+
 // --- Analysis ---
 
 function getValueType(value: unknown): JsonAnalysis['rootType'] {
