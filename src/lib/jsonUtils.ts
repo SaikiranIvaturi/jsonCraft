@@ -292,6 +292,8 @@ export function repairJson(input: string): { fixed: string; changes: string[] } 
   const changes: string[] = []
   let s = input.trim().replace(/^﻿/, '') // strip BOM
 
+  s = repairPercentEncodedQuotes(s, changes) // "url%22, → "url",
+  s = repairUnclosedStrings(s, changes)      // "url…, or any string cut off before newline+structural JSON
   s = repairMarkdownFences(s, changes)       // unwrap ```json ... ```
   s = repairStripComments(s, changes)        // // and /* */ comments
   s = repairSingleQuotes(s, changes)         // '...' → "..."
@@ -499,6 +501,68 @@ function repairTemplateLiterals(s: string, changes: string[]): string {
     result += s[i++]
   }
   if (changed) changes.push('Converted template literals to strings')
+  return result
+}
+
+function repairUnclosedStrings(s: string, changes: string[]): string {
+  // Detects strings that were never closed before a newline followed by structural JSON.
+  // Handles: "url…,\n  "nextKey": (URL truncated with ellipsis/any suffix)
+  // Strategy: if inside a string we hit a newline and the next non-whitespace char
+  // is " } ] or EOF, close the string there. If it ended with , move the comma outside.
+  let result = ''
+  let i = 0
+  let changed = false
+
+  while (i < s.length) {
+    if (s[i] !== '"') { result += s[i++]; continue }
+
+    result += '"'
+    i++
+    let closed = false
+
+    while (i < s.length) {
+      const ch = s[i]
+
+      if (ch === '\\' && i + 1 < s.length) { result += ch + s[i + 1]; i += 2; continue }
+      if (ch === '"') { result += '"'; i++; closed = true; break }
+
+      if (ch === '\n' || ch === '\r') {
+        let j = i + 1
+        while (j < s.length && (s[j] === ' ' || s[j] === '\t' || s[j] === '\r' || s[j] === '\n')) j++
+        const nc = j < s.length ? s[j] : ''
+        if (nc === '"' || nc === '}' || nc === ']' || j >= s.length) {
+          if (result.endsWith(',')) {
+            result = result.slice(0, -1) + '",'
+          } else {
+            result += '"'
+          }
+          changed = true; closed = true; break
+        }
+        result += ch; i++; continue
+      }
+
+      result += ch; i++
+    }
+
+    if (!closed) { result += '"'; changed = true }
+  }
+
+  if (changed) changes.push('Closed unclosed string literals')
+  return result
+}
+
+function repairPercentEncodedQuotes(s: string, changes: string[]): string {
+  // Handles strings where the closing " was accidentally URL-encoded as %22.
+  // Pattern: "...url...%22,  →  "...url...",
+  // Also handles redundant: ...%22"  →  ..."  (encoded + actual quote)
+  let changed = false
+  let result = s
+  result = result.replace(/%22"/g, () => { changed = true; return '"' })
+  result = result.replace(/"([^"\r\n]*?)%22,/g, (_m, content) => {
+    changed = true
+    return `"${content}",`
+  })
+  if (changed) changes.push('Fixed URL-encoded closing quotes (%22 → ")')
   return result
 }
 

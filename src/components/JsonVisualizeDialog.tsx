@@ -11,7 +11,7 @@ import {
   ToggleLeft, Calendar, Link, Mail, Layers, ImageIcon,
   Palette, Activity, ChevronUp, ChevronDown, AlertCircle,
   ArrowLeft, Trophy, Clock, List, ArrowLeftRight, ShoppingBag,
-  Check, Sparkles, Kanban, Grid3X3, FileText,
+  Check, Sparkles, Kanban, Grid3X3, FileText, Braces,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,15 @@ import { cn } from "@/lib/utils";
 
 type ViewTab   = "patterns" | "grid" | "gallery" | "dashboard" | "profiler" | "record" | "document";
 type PatternId = "kanban" | "leaderboard" | "timeline" | "metrics" | "feed" | "comparison" | "heatmap" | "product";
+type DocTab    = "outline" | "tabs" | "tree" | "tables";
+
+interface DetectedTable {
+  path: string;
+  title?: string;
+  subtitle?: string;
+  columns: { id: string; label: string; type?: string }[];
+  rows: Record<string, unknown>[];
+}
 type FieldType = "id" | "text" | "longtext" | "number" | "integer" | "boolean"
                | "date" | "url" | "image" | "email" | "color" | "status" | "nested" | "unknown";
 
@@ -1312,8 +1321,8 @@ function RichArrayTable({ label, rows }: { label: string; rows: Record<string, u
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">{label.replace(/_/g, " ")}</p>
         <span className="text-[9px] font-mono text-muted-foreground/30">{rows.length} {rows.length === 1 ? "row" : "rows"}</span>
       </div>
-      <div className="rounded-lg border border-border overflow-hidden">
-        <table className="w-full text-xs border-collapse">
+      <div className="rounded-lg border border-border overflow-auto">
+        <table className="min-w-full text-xs border-collapse">
           <thead>
             <tr className="bg-muted/50 border-b border-border">
               {keys.map(k => (
@@ -1415,56 +1424,376 @@ function RichRecordAccordion({ record, title, index, defaultOpen }: {
   );
 }
 
-function RichDocument({ parsed }: { parsed: unknown }) {
-  function findNameKey(records: Record<string, unknown>[]): string | undefined {
-    const first = records[0];
-    if (!first) return undefined;
-    for (const c of ["name","title","label","username","display_name","displayname","full_name","fullname"]) {
-      if (c in first) return c;
-    }
-    const strKey = Object.keys(first).find(k => typeof first[k] === "string" && String(first[k]).length < 60);
-    return strKey ?? Object.keys(first)[0];
-  }
+// ─── JSON tree viewer ─────────────────────────────────────────────────────────
 
-  if (Array.isArray(parsed)) {
-    const records = parsed.filter(x => x !== null && typeof x === "object" && !Array.isArray(x)) as Record<string, unknown>[];
-    if (!records.length) return <NotApplicable label="Rich Document" />;
-    const nameKey = findNameKey(records);
+function JsonNodeTree({ value, depth = 0, label }: { value: unknown; depth?: number; label?: string }) {
+  const [open, setOpen] = useState(depth < 2);
+  const BRANCH_COLORS = ["border-primary/25","border-violet-500/25","border-emerald-500/25","border-amber-500/25","border-sky-500/25"];
+
+  if (value === null || typeof value !== "object") {
+    const str = value === null ? "null" : String(value);
+    const isTrunc = typeof value === "string" && str.length > 100;
     return (
-      <div className="h-full overflow-y-auto p-4 flex flex-col gap-2.5">
-        <p className="text-[11px] text-muted-foreground/40 px-1 pb-1">
-          {records.length} records — expand each row to see nested tables, paragraphs &amp; sub-sections
-        </p>
-        {records.slice(0, 50).map((rec, i) => (
-          <RichRecordAccordion
-            key={i}
-            record={rec}
-            title={nameKey ? String(rec[nameKey] ?? `Item ${i + 1}`) : `Item ${i + 1}`}
-            index={i}
-            defaultOpen={i === 0}
-          />
-        ))}
-        {records.length > 50 && (
-          <p className="text-xs text-muted-foreground/40 text-center py-2">Showing first 50 of {records.length} records</p>
-        )}
+      <div className="flex items-baseline gap-2 py-[1px] min-w-0">
+        {label !== undefined && <span className="text-violet-500 dark:text-violet-400 font-mono text-[11px] shrink-0">"{label}":</span>}
+        <span className={cn("font-mono text-[11px] break-all",
+          value === null        ? "text-muted-foreground/40 italic" :
+          typeof value === "boolean" ? (value ? "text-emerald-500" : "text-red-400") :
+          typeof value === "number"  ? "text-blue-500 dark:text-blue-400" :
+          "text-amber-600 dark:text-amber-400")}>
+          {typeof value === "string"
+            ? `"${isTrunc ? str.slice(0,100)+"…" : str}"`
+            : str}
+        </span>
       </div>
     );
   }
 
-  if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-    const obj = parsed as Record<string, unknown>;
-    return (
-      <div className="h-full overflow-y-auto p-5">
-        <div className="max-w-3xl mx-auto rounded-xl border border-border bg-card p-6 flex flex-col gap-5">
-          {Object.entries(obj).map(([k, v]) => (
-            <RichContentBlock key={k} label={k} value={v} depth={0} />
+  const isArr = Array.isArray(value);
+  const entries: [string, unknown][] = isArr
+    ? (value as unknown[]).map((v,i) => [String(i), v])
+    : Object.entries(value as Record<string,unknown>);
+  const preview = isArr ? `[ ${entries.length} ]` : `{ ${entries.length} }`;
+
+  return (
+    <div className="min-w-0">
+      <button onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 py-[1px] w-full text-left group hover:opacity-80 transition-opacity">
+        <ChevronRight className={cn("h-3 w-3 text-muted-foreground/40 transition-transform duration-150 shrink-0", open && "rotate-90")} />
+        {label !== undefined && <span className="text-violet-500 dark:text-violet-400 font-mono text-[11px] shrink-0">"{label}":</span>}
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {open ? (isArr ? "[" : "{") : preview}
+        </span>
+        {!open && <span className="text-[9px] text-muted-foreground/25 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">expand</span>}
+      </button>
+      {open && (
+        <div className={cn("ml-3 border-l-2 pl-3 flex flex-col gap-0 my-0.5", BRANCH_COLORS[depth % BRANCH_COLORS.length])}>
+          {entries.slice(0,200).map(([k,v]) => (
+            <JsonNodeTree key={k} value={v} depth={depth+1} label={isArr ? undefined : k} />
           ))}
+          {entries.length > 200 && <span className="text-[10px] text-muted-foreground/30 py-0.5 font-mono">… {entries.length-200} more</span>}
+          <span className="font-mono text-[11px] text-muted-foreground/40">{isArr ? "]" : "}"}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Table auto-detection ──────────────────────────────────────────────────────
+
+function findTables(obj: unknown, path = "", result: DetectedTable[] = []): DetectedTable[] {
+  if (obj === null || typeof obj !== "object") return result;
+
+  if (Array.isArray(obj)) {
+    const items = obj.filter(x => x !== null && typeof x === "object" && !Array.isArray(x)) as Record<string,unknown>[];
+    if (items.length >= 2 && items.length === obj.length) {
+      const allKeys = Array.from(new Set(items.flatMap(r => Object.keys(r)))).slice(0,20);
+      if (allKeys.length > 0 && allKeys.length <= 15)
+        result.push({ path: path || "root", columns: allKeys.map(k => ({ id: k, label: k })), rows: items });
+    }
+    obj.forEach((item,i) => findTables(item, `${path}[${i}]`, result));
+    return result;
+  }
+
+  const rec = obj as Record<string,unknown>;
+
+  if (Array.isArray(rec.columns) && Array.isArray(rec.rows) && (rec.rows as unknown[]).length > 0) {
+    const cols = (rec.columns as unknown[]).map((c,i) => {
+      if (typeof c === "string") return { id: c, label: c };
+      if (typeof c === "object" && c !== null) {
+        const co = c as Record<string,unknown>;
+        return { id: String(co.id ?? co.key ?? i), label: String(co.label ?? co.name ?? co.id ?? i), type: String(co.type ?? "") };
+      }
+      return { id: String(i), label: String(i) };
+    });
+    const tableRows = (rec.rows as unknown[]).filter(r => typeof r === "object" && r !== null) as Record<string,unknown>[];
+    if (tableRows.length > 0)
+      result.push({ path: path || "root", title: rec.title ? String(rec.title) : undefined, subtitle: rec.subtitle ? String(rec.subtitle) : undefined, columns: cols, rows: tableRows });
+  }
+
+  Object.entries(rec).forEach(([k,v]) => {
+    if (typeof v === "object" && v !== null) findTables(v, path ? `${path}.${k}` : k, result);
+  });
+  return result;
+}
+
+function DetectedTableBlock({ table }: { table: DetectedTable }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          {table.title && <h3 className="font-semibold text-sm text-foreground">{table.title}</h3>}
+          {table.subtitle && <p className="text-xs text-muted-foreground/70 mt-0.5">{table.subtitle}</p>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono text-muted-foreground/40">
+          <span className="bg-muted px-1.5 py-0.5 rounded">{table.path}</span>
+          <span>{table.rows.length} rows</span>
+        </div>
+      </div>
+      <div className="rounded-xl border border-border overflow-auto">
+        <table className="min-w-full text-xs border-collapse">
+          <thead>
+            <tr className="bg-muted/60 border-b border-border">
+              {table.columns.map(col => (
+                <th key={col.id} className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    {col.type && (
+                      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0",
+                        col.type==="badge"  ? "bg-violet-400" :
+                        col.type==="date"   ? "bg-amber-400"  :
+                        col.type==="url"    ? "bg-sky-400"    : "bg-muted-foreground/30")} />
+                    )}
+                    {col.label.replace(/\\n/g, " ")}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, ri) => (
+              <tr key={ri} className={cn("border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors", ri%2!==0 && "bg-muted/10")}>
+                {table.columns.map(col => {
+                  const val = row[col.id];
+                  const str = val === null || val === undefined ? "" : String(val);
+                  return (
+                    <td key={col.id} className="px-3 py-2.5 align-top">
+                      {val === null || val === undefined
+                        ? <span className="text-muted-foreground/30 italic">—</span>
+                        : col.type==="badge"
+                          ? <StatusBadge value={str} />
+                          : col.type==="date"
+                            ? <span className="text-violet-500 dark:text-violet-400 font-mono text-[11px]">{str}</span>
+                            : col.type==="url"
+                              ? <a href={str} target="_blank" rel="noreferrer" className="text-sky-500 text-[11px] underline underline-offset-2 break-all block max-w-xs">{str.replace(/^https?:\/\/(www\.)?/,"").slice(0,50)}</a>
+                              : <span className="text-foreground/80 text-[11px] leading-relaxed">{str.length>80 ? str.slice(0,80)+"…" : str}</span>
+                      }
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Shared doc helper ────────────────────────────────────────────────────────
+
+function findDocNameKey(records: Record<string,unknown>[]): string | undefined {
+  const first = records[0];
+  if (!first) return undefined;
+  for (const c of ["name","title","label","pattern_title","heading","username","display_name","displayname","full_name","fullname"]) {
+    if (c in first) return c;
+  }
+  return Object.keys(first).find(k => typeof first[k]==="string" && String(first[k]).length < 80) ?? Object.keys(first)[0];
+}
+
+// ─── Tab Structure View ───────────────────────────────────────────────────────
+
+function TabStructureView({ parsed }: { parsed: unknown }) {
+  const [active, setActive] = useState(0);
+
+  // Normalise: array of objects OR single object treated as one-tab
+  const isArr = Array.isArray(parsed);
+  const records: Record<string,unknown>[] = isArr
+    ? (parsed as unknown[]).filter(x => x!==null && typeof x==="object" && !Array.isArray(x)) as Record<string,unknown>[]
+    : (typeof parsed==="object" && parsed!==null ? [parsed as Record<string,unknown>] : []);
+
+  if (!records.length) return <NotApplicable label="Tab Structure" />;
+
+  const nameKey = findDocNameKey(records);
+  const safeActive = Math.min(active, records.length - 1);
+  const current = records[safeActive];
+
+  // For a single object, treat each top-level key as a tab
+  if (!isArr && records.length === 1) {
+    const obj = records[0];
+    const keys = Object.keys(obj);
+    const safeKey = Math.min(active, keys.length - 1);
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex overflow-x-auto border-b border-border shrink-0 bg-muted/10">
+          {keys.map((k, i) => (
+            <button key={k} onClick={() => setActive(i)}
+              className={cn("flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 whitespace-nowrap transition-all -mb-px shrink-0",
+                safeKey===i ? "border-primary text-primary bg-background" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20")}>
+              <TypeIcon type={detectType(k, [obj[k]])} />
+              {k.replace(/_/g," ")}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 min-h-0 relative">
+          <div className="absolute inset-0 overflow-y-auto p-5">
+            <RichContentBlock label={keys[safeKey]} value={obj[keys[safeKey]]} depth={0} />
+          </div>
         </div>
       </div>
     );
   }
 
-  return <NotApplicable label="Rich Document" />;
+  // Array case: each item is a tab
+  return (
+    <div className="flex flex-col h-full">
+      {/* Item tabs */}
+      <div className="flex overflow-x-auto border-b border-border shrink-0 bg-muted/10">
+        {records.map((rec, i) => {
+          const rawLabel = nameKey ? String(rec[nameKey] ?? `Item ${i+1}`) : `Item ${i+1}`;
+          const label = rawLabel.length > 40 ? rawLabel.slice(0,40)+"…" : rawLabel;
+          const hasRank = rec.rank !== undefined;
+          return (
+            <button key={i} onClick={() => setActive(i)}
+              className={cn("flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 whitespace-nowrap transition-all -mb-px shrink-0 max-w-[220px]",
+                safeActive===i ? "border-primary text-primary bg-background" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20")}>
+              {hasRank && (
+                <span className={cn("h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0",
+                  safeActive===i ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground/60")}>
+                  {String(rec.rank)}
+                </span>
+              )}
+              <span className="truncate">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active item content */}
+      <div className="flex-1 min-h-0 relative">
+        <div className="absolute inset-0 overflow-y-auto">
+          {/* Item header strip */}
+          <div className="px-6 py-4 border-b border-border/50 bg-muted/5">
+            <div className="flex items-start gap-3">
+              {current.rank !== undefined && (
+                <span className="h-8 w-8 rounded-xl bg-primary/15 text-primary flex items-center justify-center text-sm font-black shrink-0">
+                  {String(current.rank)}
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                {nameKey && current[nameKey] && (
+                  <h3 className="font-semibold text-base text-foreground leading-snug">
+                    {String(current[nameKey])}
+                  </h3>
+                )}
+                {current.pattern_description && (
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    {String(current.pattern_description)}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Fields */}
+          <div className="p-5 flex flex-col gap-5">
+            {Object.entries(current)
+              .filter(([k]) => k !== nameKey && k !== "pattern_description" && k !== "rank")
+              .map(([k, v]) => (
+                <RichContentBlock key={k} label={k} value={v} depth={0} />
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Rich Document View (tabbed) ──────────────────────────────────────────────
+
+function RichDocument({ parsed }: { parsed: unknown }) {
+  const [docTab, setDocTab] = useState<DocTab>("outline");
+
+  const tables = useMemo(() => findTables(parsed), [parsed]);
+
+  const renderOutline = () => {
+    if (Array.isArray(parsed)) {
+      const records = parsed.filter(x => x!==null && typeof x==="object" && !Array.isArray(x)) as Record<string,unknown>[];
+      if (!records.length) return <NotApplicable label="Document" />;
+      const nameKey = findDocNameKey(records);
+      return (
+        <div className="flex flex-col gap-2.5">
+          <p className="text-[11px] text-muted-foreground/40 pb-1">
+            {records.length} records — expand each to see nested tables, paragraphs &amp; sub-sections
+          </p>
+          {records.slice(0,50).map((rec,i) => (
+            <RichRecordAccordion key={i} record={rec}
+              title={nameKey ? String(rec[nameKey] ?? `Item ${i+1}`) : `Item ${i+1}`}
+              index={i} defaultOpen={i===0} />
+          ))}
+          {records.length > 50 && <p className="text-xs text-muted-foreground/40 text-center py-2">Showing first 50 of {records.length} records</p>}
+        </div>
+      );
+    }
+    if (typeof parsed==="object" && parsed!==null) {
+      const obj = parsed as Record<string,unknown>;
+      return (
+        <div className="max-w-3xl mx-auto rounded-xl border border-border bg-card p-6 flex flex-col gap-5">
+          {Object.entries(obj).map(([k,v]) => <RichContentBlock key={k} label={k} value={v} depth={0} />)}
+        </div>
+      );
+    }
+    return <NotApplicable label="Document" />;
+  };
+
+  const DOC_TABS: { id: DocTab; label: string; icon: typeof Eye; badge?: number }[] = [
+    { id: "outline", label: "Outline", icon: FileText },
+    { id: "tabs",    label: "Tabs",    icon: Layers },
+    { id: "tree",    label: "Tree",    icon: Braces },
+    { id: "tables",  label: "Tables",  icon: Table2, badge: tables.length },
+  ];
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Sub-tab bar */}
+      <div className="flex items-center gap-1 px-4 py-2.5 border-b border-border bg-muted/20 shrink-0">
+        {DOC_TABS.map(({ id, label, icon: Icon, badge }) => (
+          <button key={id} onClick={() => setDocTab(id)}
+            className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+              docTab===id
+                ? "bg-background text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}>
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            {label}
+            {badge !== undefined && badge > 0 && (
+              <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center tabular-nums",
+                docTab===id ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground/60")}>
+                {badge}
+              </span>
+            )}
+          </button>
+        ))}
+        <span className="ml-auto text-[10px] text-muted-foreground/30 font-mono hidden sm:block">
+          {Array.isArray(parsed) ? `${(parsed as unknown[]).length} items` : typeof parsed==="object" && parsed!==null ? `${Object.keys(parsed).length} keys` : ""}
+        </span>
+      </div>
+
+      {/* Content — absolute inset-0 gives a definite height the scroll container resolves against */}
+      <div className="flex-1 min-h-0 relative">
+        {docTab==="outline" && (
+          <div className="absolute inset-0 overflow-y-auto p-4">
+            {renderOutline()}
+          </div>
+        )}
+        {docTab==="tabs" && (
+          <TabStructureView parsed={parsed} />
+        )}
+        {docTab==="tree" && (
+          <div className="absolute inset-0 overflow-auto p-4">
+            <div className="min-w-max font-mono">
+              <JsonNodeTree value={parsed} depth={0} />
+            </div>
+          </div>
+        )}
+        {docTab==="tables" && (
+          <div className="absolute inset-0 overflow-y-auto p-4 flex flex-col gap-8">
+            {tables.length===0
+              ? <NotApplicable label="Tables" />
+              : tables.map((t,i) => <DetectedTableBlock key={i} table={t} />)
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ─── Main dialog ──────────────────────────────────────────────────────────────
@@ -1492,7 +1821,7 @@ export function JsonVisualizeDialog({ open, onOpenChange, json }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-[95vw] max-h-[93vh] flex flex-col gap-0 p-0 overflow-hidden">
+      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] max-h-[93vh] flex flex-col gap-0 p-0 overflow-hidden">
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Eye className="h-4 w-4 text-primary" />

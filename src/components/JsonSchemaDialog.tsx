@@ -55,8 +55,8 @@ export function JsonSchemaDialog({ open, onOpenChange, json }: Props) {
             JSON Schema Inference
           </DialogTitle>
           <DialogDescription>
-            Infer a JSON Schema (Draft 7) from your JSON. Required fields and types are detected
-            automatically.
+            Infer a JSON Schema (Draft 7) from your JSON. Required fields and
+            types are detected automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,7 +75,9 @@ export function JsonSchemaDialog({ open, onOpenChange, json }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-h-0 overflow-y-auto sm:overflow-visible">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-muted-foreground">JSON Input</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              JSON Input
+            </span>
             <textarea
               className="flex-1 min-h-[160px] sm:min-h-[280px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary"
               value={input}
@@ -112,7 +114,9 @@ export function JsonSchemaDialog({ open, onOpenChange, json }: Props) {
             ) : (
               <pre className="flex-1 min-h-[160px] sm:min-h-[280px] font-mono text-xs rounded-lg border border-border bg-muted/30 p-3 overflow-auto whitespace-pre-wrap break-words">
                 {output || (
-                  <span className="text-muted-foreground">Schema will appear here…</span>
+                  <span className="text-muted-foreground">
+                    Schema will appear here…
+                  </span>
                 )}
               </pre>
             )}
