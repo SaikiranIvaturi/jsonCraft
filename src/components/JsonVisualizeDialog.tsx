@@ -226,7 +226,7 @@ function KanbanFull({ ds }: { ds: DatasetInfo }) {
   const extraFields = ds.fields.filter(f => f.key !== ds.nameKey && f.key !== groupKey && f.key !== ds.avatarKey && f.type !== "nested").slice(0,2);
 
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-auto p-4">
       <div className="flex gap-3 min-w-max pb-2">
         {Object.entries(groups).map(([status, items], gi) => (
           <div key={status} className="w-72 flex flex-col gap-2.5 shrink-0">
@@ -295,7 +295,7 @@ function LeaderboardFull({ ds }: { ds: DatasetInfo }) {
   const extraKey = ds.fields.find(f => f.key !== ds.nameKey && f.key !== ds.numKey && f.key !== ds.avatarKey && (f.type === "status" || f.type === "text"))?.key;
 
   return (
-    <div className="overflow-auto max-h-full p-5 flex flex-col gap-2.5">
+    <div className="h-full overflow-y-auto p-5 flex flex-col gap-2.5">
       {/* Header */}
       <div className="flex items-center gap-4 px-4 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">
         <span className="w-8 text-center">#</span>
@@ -349,7 +349,7 @@ function TimelineFull({ ds }: { ds: DatasetInfo }) {
     : ds.rows;
 
   return (
-    <div className="overflow-auto max-h-full px-6 py-4">
+    <div className="h-full overflow-y-auto px-6 py-4">
       <div className="relative max-w-2xl mx-auto">
         {/* Vertical line */}
         <div className="absolute left-[88px] top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-border to-transparent" />
@@ -420,7 +420,7 @@ function MetricCardsFull({ ds }: { ds: DatasetInfo }) {
   const maxVal = primaryField?.numStats?.max ?? 1;
 
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-y-auto p-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {ds.rows.slice(0, 24).map((row, i) => {
           const nameVal = ds.nameKey ? String(row[ds.nameKey] ?? `Item ${i+1}`) : `Item ${i+1}`;
@@ -481,7 +481,7 @@ function FeedFull({ ds }: { ds: DatasetInfo }) {
   const metaFields = ds.fields.filter(f => f.key !== ds.nameKey && f.key !== ds.descKey && f.key !== ds.avatarKey && f.key !== ds.statusKey && !tagFields.find(t=>t.key===f.key) && (f.type==="text"||f.type==="id"||f.type==="email")).slice(0,1);
 
   return (
-    <div className="overflow-auto max-h-full p-4 flex flex-col gap-0">
+    <div className="h-full overflow-y-auto p-4 flex flex-col gap-0">
       {ds.rows.slice(0, 20).map((row, i) => {
         const nameVal = ds.nameKey ? String(row[ds.nameKey] ?? `User ${i+1}`) : `User ${i+1}`;
         const descVal = ds.descKey ? row[ds.descKey] : null;
@@ -542,7 +542,7 @@ function ComparisonFull({ ds }: { ds: DatasetInfo }) {
   const showFields = ds.fields.filter(f => f.type !== "nested" && f.type !== "longtext" && f.key !== ds.avatarKey).slice(0, 15);
 
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-auto p-4">
       <table className="w-full text-xs border-collapse min-w-max">
         <thead>
           <tr>
@@ -614,7 +614,7 @@ function HeatMapFull({ ds }: { ds: DatasetInfo }) {
   }
 
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-auto p-4">
       {/* Legend */}
       <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
         <span>Low</span>
@@ -674,7 +674,7 @@ function ProductShelfFull({ ds }: { ds: DatasetInfo }) {
   const extraFields = ds.fields.filter(f => f.key!==ds.nameKey && f.key!==ds.avatarKey && f.key!==ds.statusKey && f.key!==priceField && f.key!==ds.descKey && f.type!=="nested" && f.type!=="longtext").slice(0,2);
 
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-y-auto p-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {ds.rows.slice(0, 24).map((row, i) => {
           const nameVal = ds.nameKey ? String(row[ds.nameKey] ?? `Product ${i+1}`) : `Product ${i+1}`;
@@ -956,7 +956,7 @@ function PatternsTab({ ds, onApply }: { ds: DatasetInfo; onApply: (id: PatternId
   }
 
   return (
-    <div className="overflow-auto max-h-full p-5">
+    <div className="h-full overflow-y-auto p-5">
       {applied && (
         <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
           <Check className="h-4 w-4 shrink-0" />
@@ -1106,7 +1106,7 @@ function Gallery({ ds }: { ds: DatasetInfo }) {
   const metricFields = ds.fields.filter(f=>(f.type==="number"||f.type==="integer")&&f.key!==ds.numKey).slice(0,3);
   const extraFields = ds.fields.filter(f=>f.key!==ds.nameKey&&f.key!==ds.avatarKey&&f.key!==ds.statusKey&&f.key!==ds.descKey&&!metricFields.find(m=>m.key===f.key)&&f.type!=="nested").slice(0,4);
   return (
-    <div className="overflow-auto max-h-full p-4">
+    <div className="h-full overflow-y-auto p-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {ds.rows.slice(0,30).map((row,i)=>{
           const nameVal = ds.nameKey ? String(row[ds.nameKey]??`Item ${i+1}`) : `Item ${i+1}`;
@@ -1153,7 +1153,7 @@ function Dashboard({ ds }: { ds: DatasetInfo }) {
   },[ds,catField]);
   const fillRate = ds.fields.length>0?Math.round(ds.fields.reduce((s,f)=>s+(100-f.nullPct),0)/ds.fields.length):0;
   return (
-    <div className="overflow-auto max-h-full p-4 flex flex-col gap-5">
+    <div className="h-full overflow-y-auto p-4 flex flex-col gap-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label="Records" value={ds.rows.length} sub={`${ds.fields.length} fields`} />
         {numField?.numStats ? (<><KpiCard label={`Avg ${ds.numKey}`} value={numField.numStats.avg.toFixed(2)} /><KpiCard label={`Max ${ds.numKey}`} value={numField.numStats.max} sub={`min: ${numField.numStats.min}`} /><KpiCard label={`Sum ${ds.numKey}`} value={numField.numStats.sum} /></>) : (<><KpiCard label="Fields" value={ds.fields.length} /><KpiCard label="Fill rate" value={`${fillRate}%`} sub="avg non-null" /><KpiCard label="Unique" value={ds.fields.find(f=>f.type==="id")?.uniqueCount??ds.rows.length} /></>)}
@@ -1190,7 +1190,7 @@ function Dashboard({ ds }: { ds: DatasetInfo }) {
 
 function Profiler({ ds }: { ds: DatasetInfo }) {
   return (
-    <div className="overflow-auto max-h-full">
+    <div className="h-full overflow-y-auto">
       <table className="w-full text-xs border-collapse">
         <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm">
           <tr className="border-b border-border">{["Field","Type","Fill","Unique","Sample / Stats"].map(h=><th key={h} className="px-4 py-2.5 text-left font-semibold text-muted-foreground whitespace-nowrap">{h}</th>)}</tr>
@@ -1218,7 +1218,7 @@ function RecordExplorer({ ds }: { ds: DatasetInfo }) {
   const avatarSrc = ds.avatarKey ? String(row[ds.avatarKey]??"") : undefined;
   const mainFields = ds.fields.filter(f=>f.key!==ds.nameKey&&f.key!==ds.avatarKey&&f.key!==ds.statusKey&&f.key!==ds.descKey);
   return (
-    <div className="overflow-auto max-h-full p-4 flex flex-col gap-4">
+    <div className="h-full overflow-y-auto p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">Record <span className="font-mono font-bold text-foreground">{idx+1}</span> of <span className="font-mono font-bold text-foreground">{ds.rows.length}</span></span>
         <div className="flex items-center gap-1">
@@ -1431,7 +1431,7 @@ function RichDocument({ parsed }: { parsed: unknown }) {
     if (!records.length) return <NotApplicable label="Rich Document" />;
     const nameKey = findNameKey(records);
     return (
-      <div className="overflow-auto max-h-full p-4 flex flex-col gap-2.5">
+      <div className="h-full overflow-y-auto p-4 flex flex-col gap-2.5">
         <p className="text-[11px] text-muted-foreground/40 px-1 pb-1">
           {records.length} records — expand each row to see nested tables, paragraphs &amp; sub-sections
         </p>
@@ -1454,7 +1454,7 @@ function RichDocument({ parsed }: { parsed: unknown }) {
   if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
     const obj = parsed as Record<string, unknown>;
     return (
-      <div className="overflow-auto max-h-full p-5">
+      <div className="h-full overflow-y-auto p-5">
         <div className="max-w-3xl mx-auto rounded-xl border border-border bg-card p-6 flex flex-col gap-5">
           {Object.entries(obj).map(([k, v]) => (
             <RichContentBlock key={k} label={k} value={v} depth={0} />
